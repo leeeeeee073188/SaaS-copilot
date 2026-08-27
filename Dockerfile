@@ -2,7 +2,7 @@
 # 目标：生产镜像尽量精简，开发镜像包含调试工具
 
 # ── 阶段 1：基础环境 ──────────────────────────────────────────────────────────
-FROM python:3.12-slim AS base
+FROM docker.m.daocloud.io/library/python:3.12-slim AS base
 
 WORKDIR /app
 
@@ -13,7 +13,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
 # curl 用于健康检查；不再需要 gcc/g++（已移除本地 ML 模型）
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN sed -i 's|deb.debian.org/debian|mirrors.aliyun.com/debian|g; s|security.debian.org/debian-security|mirrors.aliyun.com/debian-security|g' /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -21,8 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM base AS dependencies
 
 COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+RUN pip install --upgrade pip --index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
+    pip install -r requirements.txt --index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 预下载 ChromaDB 内置的 ONNX embedding 模型（~79MB），避免运行时下载超时
 RUN mkdir -p /root/.cache/chroma/onnx_models/all-MiniLM-L6-v2 && \
