@@ -28,23 +28,49 @@ logger = logging.getLogger(__name__)
 
 class IntentCategory(Enum):
     QUERY      = "query"       # 查询信息
-    COMPLAINT  = "complaint"   # 投诉不满
-    REQUEST    = "request"     # 请求操作
+    COMPLAINT  = "complaint"   # 内部服务问题反馈
+    REQUEST    = "request"     # 请求分析或建议
     GREETING   = "greeting"    # 问候
-    ESCALATION = "escalation"  # 要求升级/转人工
-    TECHNICAL  = "technical"   # 技术问题
-    BILLING    = "billing"     # 账单/退款
-    ACCOUNT    = "account"     # 账户管理
-    FEEDBACK   = "feedback"    # 正面反馈
-    ORDER_STATUS = "order_status"        # 订单状态
-    LOGISTICS = "logistics"              # 物流配送
-    REFUND = "refund"                    # 退款/退货
-    INVOICE = "invoice"                  # 发票
-    PAYMENT_ISSUE = "payment_issue"      # 支付/扣款异常
-    ACCOUNT_SECURITY = "account_security" # 账户安全
-    TECHNICAL_LOGIN = "technical_login"  # 登录认证故障
-    TECHNICAL_CRASH = "technical_crash"  # 崩溃/错误码
-    HUMAN_HANDOFF = "human_handoff"      # 转人工
+    ESCALATION = "escalation"  # 风险升级建议
+    TECHNICAL  = "technical"   # 技术支持（兼容旧值）
+    BILLING    = "billing"     # 客户经营（兼容旧值）
+    ACCOUNT    = "account"     # 客户资料（兼容旧值）
+    FEEDBACK   = "feedback"    # 正向反馈
+    IMPLEMENTATION = "implementation"  # 客户交付与实施
+    INTEGRATION = "integration"        # API、Webhook、SSO、数据同步
+    RELIABILITY = "reliability"        # 故障、影响和稳定性
+    ENTITLEMENT = "entitlement"        # 套餐、配额和服务权益
+    ADOPTION = "adoption"              # 使用推广、健康度和续费准备
+    # 19 business intents, normalized into six intent groups below.
+    IMPLEMENTATION_PLAN = "implementation_plan"
+    ENVIRONMENT_SETUP = "environment_setup"
+    DATA_MIGRATION = "data_migration"
+    LAUNCH_VALIDATION = "launch_validation"
+    INTEGRATION_API = "integration_api"
+    INTEGRATION_WEBHOOK = "integration_webhook"
+    INTEGRATION_SSO = "integration_sso"
+    INTEGRATION_SYNC = "integration_sync"
+    RELIABILITY_INCIDENT = "reliability_incident"
+    RELIABILITY_PERFORMANCE = "reliability_performance"
+    RELIABILITY_SLA = "reliability_sla"
+    SUCCESS_ENTITLEMENT = "success_entitlement"
+    SUCCESS_QUOTA = "success_quota"
+    SUCCESS_ADOPTION = "success_adoption"
+    SUCCESS_HEALTH = "success_health"
+    RENEWAL_RISK = "renewal_risk"
+    RENEWAL_READINESS = "renewal_readiness"
+    ESCALATION_RISK = "escalation_risk"
+    CROSS_DOMAIN_ANALYSIS = "cross_domain_analysis"
+    # Legacy values remain parseable for clients that send old evaluation data.
+    ORDER_STATUS = "order_status"
+    LOGISTICS = "logistics"
+    REFUND = "refund"
+    INVOICE = "invoice"
+    PAYMENT_ISSUE = "payment_issue"
+    ACCOUNT_SECURITY = "account_security"
+    TECHNICAL_LOGIN = "technical_login"
+    TECHNICAL_CRASH = "technical_crash"
+    HUMAN_HANDOFF = "human_handoff"
     OTHER      = "other"
 
 
@@ -69,55 +95,89 @@ class IntentResult:
 
 # ── Few-shot 模板（同时用于 LLM 示例和 Embedding 匹配）────────────────────────
 _TEMPLATES: Dict[IntentCategory, List[str]] = {
-    IntentCategory.QUERY:      ["我的订单状态是什么？", "如何重置密码？", "快递什么时候到？"],
-    IntentCategory.COMPLAINT:  ["等了好几个小时！", "服务太差了！", "一直没人处理！"],
-    IntentCategory.REQUEST:    ["帮我取消订单", "我需要修改地址", "请协助退款"],
+    IntentCategory.QUERY:      ["FlowForge Cloud 的数据同步策略是什么？", "客户项目当前上线阶段是什么？", "SLA 规则在哪里？"],
+    IntentCategory.COMPLAINT:  ["客户反复反馈同一个集成问题", "这个交付问题影响了客户体验"],
+    IntentCategory.REQUEST:    ["帮我分析这个客户项目的风险", "请给出下一步处理建议"],
     IntentCategory.GREETING:   ["你好", "嗨，有人吗", "早上好"],
-    IntentCategory.ESCALATION: ["我要投诉！", "转人工客服", "找你们经理"],
-    IntentCategory.TECHNICAL:  ["应用一直崩溃", "无法登录", "出现500错误"],
-    IntentCategory.BILLING:    ["为什么扣了两次款？", "申请退款", "发票问题"],
-    IntentCategory.ACCOUNT:    ["修改邮箱", "注销账户", "更新个人信息"],
-    IntentCategory.FEEDBACK:   ["服务很棒！", "非常满意", "给个好评"],
-    IntentCategory.ORDER_STATUS: ["我的订单现在是什么状态？", "订单有没有发货？", "订单处理到哪一步了？"],
-    IntentCategory.LOGISTICS: ["快递什么时候到？", "物流一直不更新", "配送要多久？"],
-    IntentCategory.REFUND: ["我要申请退款", "退货退款怎么处理？", "退款多久到账？"],
-    IntentCategory.INVOICE: ["帮我开发票", "发票抬头怎么改？", "电子发票在哪里？"],
-    IntentCategory.PAYMENT_ISSUE: ["为什么重复扣款？", "支付失败怎么办？", "这个月多扣了钱"],
-    IntentCategory.ACCOUNT_SECURITY: ["账户被盗了", "发现异常登录", "我要重置密码"],
-    IntentCategory.TECHNICAL_LOGIN: ["登录一直报401", "验证码收不到", "无法登录账号"],
-    IntentCategory.TECHNICAL_CRASH: ["应用一直崩溃", "页面报500错误", "系统闪退"],
-    IntentCategory.HUMAN_HANDOFF: ["转人工客服", "我要找人工", "请升级处理"],
+    IntentCategory.ESCALATION: ["这个客户事件是否需要升级？", "SLA 风险是否需要管理层关注？"],
+    IntentCategory.TECHNICAL:  ["集成接口出现错误", "客户环境连接失败", "数据同步异常"],
+    IntentCategory.BILLING:    ["客户套餐配额如何解释？", "客户的服务权益是什么？"],
+    IntentCategory.ACCOUNT:    ["客户项目资料有哪些？", "如何更新客户联系人信息？"],
+    IntentCategory.FEEDBACK:   ["客户对上线体验反馈很好", "客户认可这次实施方案"],
+    IntentCategory.IMPLEMENTATION: ["新客户如何制定上线计划？", "数据迁移前需要检查什么？"],
+    IntentCategory.INTEGRATION: ["Webhook 数据同步失败怎么排查？", "SSO 接入需要哪些配置？"],
+    IntentCategory.RELIABILITY: ["这个错误会影响多少客户？", "如何判断事件严重度和 SLA 风险？"],
+    IntentCategory.ENTITLEMENT: ["客户套餐包含多少 API 配额？", "这个 SLA 是否覆盖当前客户？"],
+    IntentCategory.ADOPTION: ["客户使用量下降应该如何跟进？", "续费前如何判断客户健康度？"],
+    IntentCategory.IMPLEMENTATION_PLAN: ["新客户上线计划如何安排？"],
+    IntentCategory.ENVIRONMENT_SETUP: ["生产环境上线前需要检查什么？"],
+    IntentCategory.DATA_MIGRATION: ["客户数据迁移需要注意什么？"],
+    IntentCategory.LAUNCH_VALIDATION: ["上线验收需要哪些指标？"],
+    IntentCategory.INTEGRATION_API: ["FlowForge API 接入失败怎么分析？"],
+    IntentCategory.INTEGRATION_WEBHOOK: ["Webhook 签名校验失败怎么排查？"],
+    IntentCategory.INTEGRATION_SSO: ["SSO 集成需要哪些配置？"],
+    IntentCategory.INTEGRATION_SYNC: ["数据同步延迟的原因是什么？"],
+    IntentCategory.RELIABILITY_INCIDENT: ["服务故障影响了哪些客户？"],
+    IntentCategory.RELIABILITY_PERFORMANCE: ["任务延迟升高如何定位？"],
+    IntentCategory.RELIABILITY_SLA: ["这个事件是否有 SLA 风险？"],
+    IntentCategory.SUCCESS_ENTITLEMENT: ["客户套餐包含哪些功能？"],
+    IntentCategory.SUCCESS_QUOTA: ["客户 API 配额还剩多少？"],
+    IntentCategory.SUCCESS_ADOPTION: ["客户核心功能采用率偏低怎么办？"],
+    IntentCategory.SUCCESS_HEALTH: ["如何判断客户健康度？"],
+    IntentCategory.RENEWAL_RISK: ["客户有哪些续费流失风险？"],
+    IntentCategory.RENEWAL_READINESS: ["续费前需要准备哪些价值证明？"],
+    IntentCategory.ESCALATION_RISK: ["这个问题是否需要升级？"],
+    IntentCategory.CROSS_DOMAIN_ANALYSIS: ["请综合分析上线、故障和续费风险"],
 }
 
 _SPECIFIC_INTENTS = {
-    IntentCategory.ORDER_STATUS,
-    IntentCategory.LOGISTICS,
-    IntentCategory.REFUND,
-    IntentCategory.INVOICE,
-    IntentCategory.PAYMENT_ISSUE,
-    IntentCategory.ACCOUNT_SECURITY,
-    IntentCategory.TECHNICAL_LOGIN,
-    IntentCategory.TECHNICAL_CRASH,
-    IntentCategory.HUMAN_HANDOFF,
+    IntentCategory.IMPLEMENTATION_PLAN, IntentCategory.ENVIRONMENT_SETUP,
+    IntentCategory.DATA_MIGRATION, IntentCategory.LAUNCH_VALIDATION,
+    IntentCategory.INTEGRATION_API, IntentCategory.INTEGRATION_WEBHOOK,
+    IntentCategory.INTEGRATION_SSO, IntentCategory.INTEGRATION_SYNC,
+    IntentCategory.RELIABILITY_INCIDENT, IntentCategory.RELIABILITY_PERFORMANCE,
+    IntentCategory.RELIABILITY_SLA, IntentCategory.SUCCESS_ENTITLEMENT,
+    IntentCategory.SUCCESS_QUOTA, IntentCategory.SUCCESS_ADOPTION,
+    IntentCategory.SUCCESS_HEALTH, IntentCategory.RENEWAL_RISK,
+    IntentCategory.RENEWAL_READINESS, IntentCategory.ESCALATION_RISK,
+    IntentCategory.CROSS_DOMAIN_ANALYSIS,
 }
 
 _GENERIC_INTENTS = {
     IntentCategory.QUERY,
-    IntentCategory.BILLING,
     IntentCategory.TECHNICAL,
-    IntentCategory.ACCOUNT,
+    IntentCategory.BILLING,
     IntentCategory.ESCALATION,
 }
 
 _INTENT_GROUPS: Dict[IntentCategory, IntentCategory] = {
+    IntentCategory.IMPLEMENTATION_PLAN: IntentCategory.IMPLEMENTATION,
+    IntentCategory.ENVIRONMENT_SETUP: IntentCategory.IMPLEMENTATION,
+    IntentCategory.DATA_MIGRATION: IntentCategory.IMPLEMENTATION,
+    IntentCategory.LAUNCH_VALIDATION: IntentCategory.IMPLEMENTATION,
+    IntentCategory.INTEGRATION_API: IntentCategory.INTEGRATION,
+    IntentCategory.INTEGRATION_WEBHOOK: IntentCategory.INTEGRATION,
+    IntentCategory.INTEGRATION_SSO: IntentCategory.INTEGRATION,
+    IntentCategory.INTEGRATION_SYNC: IntentCategory.INTEGRATION,
+    IntentCategory.RELIABILITY_INCIDENT: IntentCategory.RELIABILITY,
+    IntentCategory.RELIABILITY_PERFORMANCE: IntentCategory.RELIABILITY,
+    IntentCategory.RELIABILITY_SLA: IntentCategory.RELIABILITY,
+    IntentCategory.SUCCESS_ENTITLEMENT: IntentCategory.ENTITLEMENT,
+    IntentCategory.SUCCESS_QUOTA: IntentCategory.ENTITLEMENT,
+    IntentCategory.SUCCESS_ADOPTION: IntentCategory.ADOPTION,
+    IntentCategory.SUCCESS_HEALTH: IntentCategory.ADOPTION,
+    IntentCategory.RENEWAL_RISK: IntentCategory.ADOPTION,
+    IntentCategory.RENEWAL_READINESS: IntentCategory.ADOPTION,
+    IntentCategory.ESCALATION_RISK: IntentCategory.ESCALATION,
+    IntentCategory.CROSS_DOMAIN_ANALYSIS: IntentCategory.ESCALATION,
+    IntentCategory.TECHNICAL_LOGIN: IntentCategory.RELIABILITY,
+    IntentCategory.TECHNICAL_CRASH: IntentCategory.RELIABILITY,
+    IntentCategory.ACCOUNT_SECURITY: IntentCategory.ENTITLEMENT,
     IntentCategory.ORDER_STATUS: IntentCategory.QUERY,
-    IntentCategory.LOGISTICS: IntentCategory.QUERY,
-    IntentCategory.REFUND: IntentCategory.BILLING,
-    IntentCategory.INVOICE: IntentCategory.BILLING,
-    IntentCategory.PAYMENT_ISSUE: IntentCategory.BILLING,
-    IntentCategory.ACCOUNT_SECURITY: IntentCategory.ACCOUNT,
-    IntentCategory.TECHNICAL_LOGIN: IntentCategory.TECHNICAL,
-    IntentCategory.TECHNICAL_CRASH: IntentCategory.TECHNICAL,
+    IntentCategory.LOGISTICS: IntentCategory.IMPLEMENTATION,
+    IntentCategory.REFUND: IntentCategory.ENTITLEMENT,
+    IntentCategory.INVOICE: IntentCategory.ENTITLEMENT,
+    IntentCategory.PAYMENT_ISSUE: IntentCategory.ENTITLEMENT,
     IntentCategory.HUMAN_HANDOFF: IntentCategory.ESCALATION,
 }
 
@@ -252,9 +312,9 @@ class IntentRecognizer:
                 for m in history[-3:]
             )
 
-        prompt = f"""你是客服意图分析专家。根据示例判断用户意图，返回 JSON。
+        prompt = f"""你是 SaaS 客户运营与交付问题分析专家。根据示例判断内部业务问题意图，返回 JSON。
 如果用户问题能匹配细粒度业务意图，请优先返回细粒度意图，而不是宽泛大类。
-例如退款优先返回 refund，发票优先返回 invoice，登录故障优先返回 technical_login。
+优先区分 implementation、integration、reliability、entitlement、adoption。
 
 示例:
 {examples}
@@ -308,25 +368,35 @@ class IntentRecognizer:
         """策略 3：关键词模式匹配（同步，零延迟兜底）。"""
         msg = message.lower()
         specific_patterns = {
-            IntentCategory.HUMAN_HANDOFF: ["转人工", "人工客服", "找人工"],
-            IntentCategory.ORDER_STATUS: ["订单状态", "发货了吗", "处理到哪", "order status"],
-            IntentCategory.LOGISTICS: ["物流", "快递", "配送", "运单", "delivery", "shipping"],
-            IntentCategory.REFUND: ["退款", "退货", "refund", "return"],
-            IntentCategory.INVOICE: ["发票", "抬头", "税号", "invoice"],
-            IntentCategory.PAYMENT_ISSUE: ["重复扣款", "多扣", "支付失败", "扣费", "payment failed"],
-            IntentCategory.ACCOUNT_SECURITY: ["被盗", "异常登录", "重置密码", "两步验证", "安全"],
-            IntentCategory.TECHNICAL_LOGIN: ["无法登录", "登录失败", "401", "验证码"],
-            IntentCategory.TECHNICAL_CRASH: ["崩溃", "闪退", "500", "报错", "crash"],
+            IntentCategory.IMPLEMENTATION_PLAN: ["上线计划", "上线前", "实施计划", "实施步骤", "交付计划"],
+            IntentCategory.ENVIRONMENT_SETUP: ["环境准备", "环境配置", "生产环境", "测试环境"],
+            IntentCategory.DATA_MIGRATION: ["数据迁移", "迁移数据", "迁移校验"],
+            IntentCategory.LAUNCH_VALIDATION: ["上线验收", "上线进度", "验收指标", "灰度验证"],
+            IntentCategory.INTEGRATION_API: ["api 接入", "api 集成", "sdk 接入"],
+            IntentCategory.INTEGRATION_WEBHOOK: ["webhook", "回调签名", "webhook 数据同步"],
+            IntentCategory.INTEGRATION_SSO: ["sso", "单点登录"],
+            IntentCategory.INTEGRATION_SYNC: ["数据同步", "同步延迟", "同步失败"],
+            IntentCategory.RELIABILITY_INCIDENT: ["服务故障", "故障影响", "影响范围", "事件严重度"],
+            IntentCategory.RELIABILITY_PERFORMANCE: ["性能", "延迟升高", "响应变慢", "吞吐"],
+            IntentCategory.RELIABILITY_SLA: ["sla", "服务等级", "违约风险", "SLA 风险"],
+            IntentCategory.SUCCESS_ENTITLEMENT: ["套餐", "服务权益", "功能范围"],
+            IntentCategory.SUCCESS_QUOTA: ["配额", "额度", "调用量上限", "api 配额", "quota"],
+            IntentCategory.SUCCESS_ADOPTION: ["功能采用", "使用推广", "采用率", "使用量", "adoption"],
+            IntentCategory.SUCCESS_HEALTH: ["客户健康度", "客户健康", "健康分"],
+            IntentCategory.RENEWAL_RISK: ["续费风险", "续约风险", "流失信号", "churn"],
+            IntentCategory.RENEWAL_READINESS: ["续费准备", "续费前", "续费", "价值证明", "renewal"],
+            IntentCategory.ESCALATION_RISK: ["升级风险", "需要升级", "管理层关注"],
+            IntentCategory.CROSS_DOMAIN_ANALYSIS: ["综合分析", "整体分析", "跨领域"],
         }
         generic_patterns = {
-            IntentCategory.ESCALATION: ["投诉", "经理", "supervisor"],
-            IntentCategory.COMPLAINT:  ["太差", "糟糕", "horrible", "等了很久"],
-            IntentCategory.QUERY:      ["?", "？", "怎么", "什么", "status"],
-            IntentCategory.REQUEST:    ["帮我", "需要", "please", "help"],
+            IntentCategory.ESCALATION: ["升级", "重大风险", "管理层关注", "escalate"],
+            IntentCategory.COMPLAINT:  ["客户反馈", "体验问题", "不满意", "horrible"],
+            IntentCategory.QUERY:      ["?", "？", "怎么", "什么", "如何", "status"],
+            IntentCategory.REQUEST:    ["分析", "建议", "帮我", "需要", "please", "help"],
             IntentCategory.GREETING:   ["你好", "嗨", "hello", "hi"],
-            IntentCategory.BILLING:    ["退款", "扣款", "发票", "refund"],
-            IntentCategory.TECHNICAL:  ["崩溃", "报错", "error", "crash"],
-            IntentCategory.ACCOUNT:    ["密码", "邮箱", "账户", "password"],
+            IntentCategory.TECHNICAL:  ["技术支持", "报错", "error", "故障", "support"],
+            IntentCategory.BILLING:    ["套餐", "配额", "续费", "订阅", "billing"],
+            IntentCategory.ACCOUNT:    ["客户资料", "项目资料", "联系人", "account"],
         }
 
         best_cat, best_score = self._best_pattern_match(msg, specific_patterns)
@@ -380,7 +450,14 @@ class IntentRecognizer:
         message = self._clean_text(message)
         return {
             "order_id": self._unique(re.findall(r"(?:订单号?|order(?:_id)?|#)\s*[:：#]?\s*([A-Za-z0-9_-]{4,32})", message, re.I)),
-            "product": [],
+            "customer": self._unique(re.findall(r"(?:客户|customer)\s*[:：#]?\s*([A-Za-z0-9_-]{2,32})", message, re.I)),
+            "project_id": self._unique(re.findall(r"(?:项目|project(?:_id)?)\s*[:：#]?\s*([A-Za-z0-9_-]{2,32})", message, re.I)),
+            "environment": self._unique(re.findall(r"\b(production|staging|测试环境|生产环境|预发布)\b", message, re.I)),
+            "integration": self._unique(re.findall(r"\b(webhook|api|sso|sdk|数据同步)\b", message, re.I)),
+            "sla_plan": self._unique(re.findall(r"\b(sla|premium|standard|enterprise)\b", message, re.I)),
+            "usage_metric": self._unique(re.findall(r"(?:使用量|活跃用户|调用量|usage)\s*[:：]?\s*([0-9]+(?:\.[0-9]+)?%?)", message, re.I)),
+            "requested_action": self._unique(re.findall(r"(?:建议|需要|请|帮我)\s*([^，。！？!?]{2,40})", message)),
+            "product": self._unique(re.findall(r"\b(FlowForge Cloud|FlowForge)\b", message, re.I)),
             "date": self._unique(re.findall(r"(今天|明天|昨天|本周|这周|下周|\d{4}[-/.年]\d{1,2}[-/.月]\d{1,2}日?)", message)),
             "amount": self._unique(re.findall(r"((?:¥|￥)\s*\d+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?\s*(?:元|块|rmb|cny|usd|美元))", message, re.I)),
             "error_code": self._unique(re.findall(r"\b([45]\d{2}|[A-Z][A-Z0-9_-]{2,16})\b", message)),

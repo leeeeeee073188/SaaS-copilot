@@ -92,10 +92,10 @@ class LLMJudge:
     注意：LLM Judge 本身也有偏差，建议定期用人工标注校准。
     """
 
-    JUDGE_PROMPT = """你是一个客服质量评估专家。请对以下客服响应进行评分。
+    JUDGE_PROMPT = """你是一个 SaaS 客户运营与交付分析质量评估专家。请对以下 Agent 分析响应进行评分。
 
-用户问题: {question}
-Agent 响应: {response}
+内部业务问题: {question}
+Agent 分析响应: {response}
 {context_section}
 
 请从以下四个维度评分（0.0-1.0），返回 JSON：
@@ -479,23 +479,22 @@ class EndToEndEvaluator:
 # ── 内置测试用例（开箱即用）──────────────────────────────────────────────────
 
 DEFAULT_INTENT_CASES: List[IntentTestCase] = [
-    IntentTestCase("我的订单什么时候到？",       "logistics"),
-    IntentTestCase("帮我取消订单",               "request"),
-    IntentTestCase("你们服务太差了！",            "complaint"),
-    IntentTestCase("应用一直报500错误",           "technical_crash"),
-    IntentTestCase("为什么扣了两次款？",          "payment_issue"),
-    IntentTestCase("我要投诉，转人工！",          "human_handoff"),
+    IntentTestCase("新客户上线前需要准备哪些实施步骤？", "implementation_plan"),
+    IntentTestCase("Webhook 数据同步失败怎么排查？",    "integration_webhook"),
+    IntentTestCase("这个故障会影响哪些客户和 SLA？",     "reliability_sla"),
+    IntentTestCase("客户套餐包含多少 API 配额？",         "success_quota"),
+    IntentTestCase("客户使用量下降应该如何跟进？",       "success_adoption"),
+    IntentTestCase("这个客户事件是否需要升级？",         "escalation_risk"),
     IntentTestCase("你好",                        "greeting"),
-    IntentTestCase("修改我的邮箱地址",            "account"),
-    IntentTestCase("帮我开发票",                  "invoice"),
-    IntentTestCase("退款多久到账？",              "refund"),
-    IntentTestCase("登录一直报401",               "technical_login"),
+    IntentTestCase("FlowForge Cloud 的 SSO 配置要求是什么？", "integration_sso"),
+    IntentTestCase("续费前如何判断客户健康度？",             "renewal_readiness"),
+    IntentTestCase("客户项目的上线进度如何分析？",           "launch_validation"),
 ]
 
 DEFAULT_DIALOG_CASES: List[Dict[str, Any]] = [
-    {"question": "我的订单 #12345 还没到，已经超时了"},
-    {"question": "应用登录一直报错 401"},
-    {"question": "为什么这个月多扣了 50 块钱？"},
-    {"question": "帮我把收货地址改成北京市朝阳区"},
-    {"turns": ["你好，我想退款", "订单号是 #12345", "退款多久能到账？"]},
+    {"question": "新客户下周要上线，实施计划还缺哪些步骤？"},
+    {"question": "FlowForge Cloud 的 Webhook 一直返回 401，如何判断影响范围？"},
+    {"question": "客户使用量持续下降，距离续费还有两个月，应该关注什么？"},
+    {"question": "这个套餐的 API 配额和 SLA 适用范围是什么？"},
+    {"turns": ["客户上线遇到问题", "Webhook 同步失败且 SLA 快到期", "请汇总排查和客户跟进建议"]},
 ]

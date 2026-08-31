@@ -1,5 +1,5 @@
 """
-EchoMind 智能客服系统 — FastAPI 入口
+EchoMind SaaS 客户运营与交付分析平台 — FastAPI 入口
 
 启动时打印小熊饼干图案。
 所有核心组件在 lifespan 中初始化，通过环境变量配置。
@@ -37,7 +37,7 @@ BANNER = r"""
     ʕ•ᴥ•ʔ  ʕ•ᴥ•ʔ  ʕ•ᴥ•ʔ
    ╔══════════════════════╗
    ║   EchoMind  v2.0     ║
-   ║   智能客服 AI 系统    ║
+   ║ SaaS 客户运营分析系统 ║
    ╚══════════════════════╝
     ʕ•ᴥ•ʔ  ʕ•ᴥ•ʔ  ʕ•ᴥ•ʔ
 """
@@ -133,7 +133,7 @@ async def lifespan(app: FastAPI):
         query = params.get("query", "")
         return [{
             "title": "知识库降级结果",
-            "content": f"知识库暂时不可用，未能完成对“{query}”的语义检索。请稍后重试，或转人工客服确认。",
+            "content": f"知识库暂时不可用，未能完成对“{query}”的语义检索。请稍后重试，或根据已有上下文进行人工分析。",
             "score": 0.0,
             "fallback": True,
             "error": error,
@@ -188,7 +188,7 @@ async def lifespan(app: FastAPI):
 
 # ── FastAPI ───────────────────────────────────────────────────────────────────
 app = FastAPI(
-    title="EchoMind 智能客服",
+    title="EchoMind SaaS 客户运营与交付分析平台",
     version="2.0.0",
     lifespan=lifespan,
     docs_url="/docs",
@@ -358,7 +358,7 @@ async def _build_knowledge_context(message: str, intent=None, top_k: int = 3) ->
 
         if not used:
             return "", False
-        parts.append("请优先依据以上知识库内容回答；如果知识库内容不足，再结合通用客服能力说明。")
+        parts.append("请优先依据以上知识库内容回答；如果知识库内容不足，再结合 EchoMind 的内部 SaaS 运营分析能力说明。")
         return "\n".join(parts), True
     except Exception as ex:
         logger.warning(f"构建知识库上下文失败: {ex}")
@@ -375,6 +375,7 @@ def _should_use_knowledge(message: str, intent=None) -> bool:
         return False
     if intent_value in {
         "query", "request", "technical", "billing", "account", "complaint",
+        "implementation", "integration", "reliability", "entitlement", "adoption",
         "order_status", "logistics", "refund", "invoice", "payment_issue",
         "account_security", "technical_login", "technical_crash",
     }:
@@ -383,9 +384,9 @@ def _should_use_knowledge(message: str, intent=None) -> bool:
     if msg in greetings:
         return False
     business_keywords = [
-        "退款", "订单", "物流", "配送", "发票", "扣款", "支付", "账单", "订阅",
-        "登录", "报错", "错误", "崩溃", "会员", "积分", "账户", "密码", "地址",
-        "refund", "order", "invoice", "payment", "error", "login",
+        "客户", "项目", "上线", "实施", "迁移", "验收", "培训", "API", "Webhook", "SSO",
+        "SDK", "同步", "故障", "报错", "错误", "SLA", "配额", "权益", "健康度", "使用量",
+        "采用", "续费", "续约", "renewal", "integration", "adoption", "error", "login",
     ]
     return len(msg) >= 4 or any(kw in msg for kw in business_keywords)
 
@@ -459,8 +460,8 @@ async def add_knowledge(body: BatchDocInput):
     ```json
     {
       "documents": [
-        {"title": "退款政策", "content": "用户在购买后 7 天内可以申请无理由退款..."},
-        {"title": "配送说明", "content": "标准配送 3-5 个工作日..."}
+        {"title": "上线实施指南", "content": "新客户上线需要确认环境、迁移范围和验收指标..."},
+        {"title": "集成排障手册", "content": "Webhook 失败时先检查签名、响应码和重试记录..."}
       ]
     }
     ```

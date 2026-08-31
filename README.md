@@ -2,14 +2,14 @@
 
 本文档说明 EchoMind 的部署、启动、API 调用、知识库使用、ChromaDB 数据查看、监控评测和常见排障。
 
-EchoMind 是一个企业级智能客服系统，核心链路为：
+EchoMind 是一个面向 SaaS 企业内部员工的客户运营与交付问答/分析系统，核心链路为：
 
 ```text
 用户请求
   -> FastAPI /chat
   -> MemoryManager 读取 Redis 工作记忆 + ChromaDB 情景记忆 + 用户画像
   -> IntentRecognizer 识别意图
-  -> AgentOrchestrator 路由到 General/Technical/Billing Agent
+  -> AgentOrchestrator 路由到 Triage/Delivery/Support/Success/Renewal Agent
   -> LLM 生成回复
   -> 写入 Redis，并异步更新 ChromaDB 用户画像
 ```
@@ -241,7 +241,7 @@ http://localhost/docs
 
 ### 5.2 Skills 动态能力加载
 
-EchoMind 支持从目录加载 Skills，用来把业务流程、客服话术、排障 SOP 等规则动态注入 Agent。
+EchoMind 支持从目录加载 Skills，用来把交付、技术支持、客户成功和续费运营分析规则动态注入 Agent。
 
 默认配置：
 
@@ -253,25 +253,25 @@ ECHOMIND_SKILLS_MAX_PROMPT_CHARS=5000
 推荐结构：
 
 ```text
-skills/refund/SKILL.md
-skills/customer_support/SKILL.md
+skills/delivery/SKILL.md
+skills/support/SKILL.md
 ```
 
 `SKILL.md` 示例：
 
 ```markdown
 ---
-name: 退款处理流程
-description: 退款场景的客服处理规则
-keywords: 退款,退费,refund
-agents: billing,general
+name: 集成故障分析流程
+description: Webhook 和数据同步问题的支持分析规则
+keywords: Webhook,API,同步,error
+agents: support,triage
 enabled: true
 ---
 
-# 退款处理流程
+# 集成故障分析流程
 
-- 先确认订单号和支付方式。
-- 涉及实际退款操作时转人工审核。
+- 先确认环境、错误码、请求时间和重试记录。
+- 区分已知事实、根因假设和需要验证的下一步。
 ```
 
 查看加载结果：
@@ -300,7 +300,7 @@ curl http://localhost:8000/health
 {
   "status": "ok",
   "agents": {
-    "general_0": {
+    "triage_0": {
       "total": 0,
       "success_rate": 1.0,
       "avg_ms": 0.0,
@@ -319,7 +319,7 @@ curl http://localhost:8000/health
 
 ```json
 {
-  "message": "我要退款",
+  "message": "帮我分析这个客户项目的上线风险",
   "user_id": "user_001",
   "conv_id": "session_001"
 }
@@ -358,7 +358,7 @@ Query 参数：
 示例：
 
 ```bash
-curl -X POST "http://localhost:8000/search?query=退款多久到账&top_k=3"
+curl -X POST "http://localhost:8000/search?query=Webhook 数据同步失败如何排查&top_k=3"
 ```
 
 ### 5.6 `/knowledge/add`
@@ -371,8 +371,8 @@ curl -X POST "http://localhost:8000/search?query=退款多久到账&top_k=3"
 {
   "documents": [
     {
-      "title": "退款政策",
-      "content": "用户在购买后 7 天内可以申请无理由退款..."
+      "title": "FlowForge Cloud 上线实施指南",
+      "content": "新客户上线需要确认环境、迁移范围和验收指标..."
     }
   ]
 }
@@ -452,7 +452,7 @@ curl -X POST http://localhost:8000/eval/run
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -d '{
-    "message": "我的订单什么时候到？",
+    "message": "新客户下周上线，实施计划还缺哪些步骤？",
     "user_id": "user_001",
     "conv_id": "session_001"
   }'
@@ -463,9 +463,9 @@ curl -X POST http://localhost:8000/chat \
 ```json
 {
   "conv_id": "session_001",
-  "response": "请提供订单号，我可以帮您查询订单状态和物流进度。",
+  "response": "建议先确认目标环境、迁移范围和验收指标，再按阶段推进上线。",
   "intent": "query",
-  "agent_type": "general",
+  "agent_type": "delivery",
   "escalated": false,
   "latency_ms": 1234.5
 }
@@ -480,7 +480,7 @@ curl -X POST http://localhost:8000/chat \
 | `conv_id` | 会话 ID，相同 `conv_id` 表示同一轮多轮对话 |
 | `intent` | 识别出的意图 |
 | `agent_type` | 实际处理请求的 Agent |
-| `escalated` | 是否触发升级/转人工 |
+| `escalated` | 是否标记为需要进一步专家分析 |
 | `latency_ms` | 端到端延迟 |
 
 ### 6.2 多轮对话
@@ -491,7 +491,7 @@ curl -X POST http://localhost:8000/chat \
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -d '{
-    "message": "订单号是 A123456",
+    "message": "项目编号是 proj_123，目标环境为 production",
     "user_id": "user_001",
     "conv_id": "session_001"
   }'
@@ -511,21 +511,21 @@ curl -X POST http://localhost:8000/chat \
   }'
 ```
 
-预期会路由到 `technical` Agent。
+预期会路由到 `support` Agent。
 
-### 6.4 账单问题示例
+### 6.4 客户成功问题示例
 
 ```bash
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -d '{
-    "message": "为什么这个月重复扣款了？我要退款",
-    "user_id": "user_bill",
-    "conv_id": "bill_001"
+    "message": "客户使用量持续下降，续费前应该如何判断健康度？",
+    "user_id": "user_success",
+    "conv_id": "success_001"
   }'
 ```
 
-预期会路由到 `billing` Agent。
+预期会路由到 `success` 或 `renewal` Agent。
 
 ### 6.5 复合问题示例
 
@@ -533,13 +533,13 @@ curl -X POST http://localhost:8000/chat \
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -d '{
-    "message": "登录报错 401，而且这个月还重复扣款了",
+    "message": "Webhook 返回 401，客户无法上线，而且距离续费只剩两个月",
     "user_id": "user_mix",
     "conv_id": "mix_001"
   }'
 ```
 
-这类问题会触发多 Agent 并行协作，由技术 Agent 和账单 Agent 分别处理后合并回复。
+这类问题会触发多 Agent 并行协作，由 Support、Delivery 和 Renewal Agent 分别分析后合并回复。
 
 ## 7. 知识库使用
 
@@ -549,7 +549,7 @@ EchoMind 的知识库由 `mcp/knowledge_base.py` 管理，底层使用 ChromaDB 
 knowledge_base
 ```
 
-首次启动时，如果知识库为空，会自动导入默认客服文档，包括退款政策、订单查询、账户安全、技术故障排查、会员积分、配送说明。
+首次启动时，如果知识库为空，会自动导入 FlowForge Cloud 的实施、集成排障、可靠性、客户健康度和续费运营文档。
 
 ### 7.1 查看知识库统计
 
@@ -573,12 +573,12 @@ curl -X POST http://localhost:8000/knowledge/add \
   -d '{
     "documents": [
       {
-        "title": "退换货政策",
-        "content": "用户在购买后 7 天内可以申请无理由退货，审核通过后 5-7 个工作日退款。"
+        "title": "集成排障手册",
+        "content": "Webhook 失败时先检查环境、签名、响应码和重试记录。"
       },
       {
-        "title": "会员权益",
-        "content": "金卡会员享受 9 折优惠，生日当月可获得双倍积分。"
+        "title": "续费准备度",
+        "content": "续费判断应综合使用趋势、价值证明和未闭环问题。"
       }
     ]
   }'
@@ -616,18 +616,18 @@ JSON 格式必须是数组：
 ### 7.4 检索知识库
 
 ```bash
-curl -X POST "http://localhost:8000/search?query=退款需要多久到账&top_k=3"
+curl -X POST "http://localhost:8000/search?query=客户续费风险有哪些信号&top_k=3"
 ```
 
 响应示例：
 
 ```json
 {
-  "query": "退款需要多久到账",
+  "query": "客户续费风险有哪些信号",
   "results": [
     {
-      "title": "退款政策",
-      "content": "审核通过后，款项将在 5-7 个工作日内退回原支付账户。",
+      "title": "续费准备度与运营信号",
+      "content": "续费判断应综合使用趋势、价值证明和未闭环问题。",
       "score": 0.82,
       "chunk": 0
     }
@@ -780,7 +780,7 @@ client = chromadb.HttpClient(host="chromadb", port=8000)
 col = client.get_collection("knowledge_base")
 
 result = col.query(
-    query_texts=["退款多久到账"],
+    query_texts=["Webhook 数据同步失败如何排查"],
     n_results=3,
     include=["documents", "metadatas", "distances"],
 )
@@ -804,7 +804,7 @@ PY
 ```bash
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "我经常咨询会员积分和退款问题，回答请简洁一点", "user_id": "profile_user", "conv_id": "profile_session"}'
+  -d '{"message": "我经常分析客户健康度和续费风险，回答请简洁一点", "user_id": "profile_user", "conv_id": "profile_session"}'
 ```
 
 等待几秒后查看：
@@ -843,7 +843,7 @@ PY
 for i in $(seq 1 16); do
   curl -s -X POST http://localhost:8000/chat \
     -H "Content-Type: application/json" \
-    -d "{\"message\": \"这是第 $i 条测试消息，我想咨询退款和订单问题\", \"user_id\": \"episodic_user\", \"conv_id\": \"episodic_session\"}" > /dev/null
+    -d "{\"message\": \"这是第 $i 条测试消息，我想分析客户上线和集成问题\", \"user_id\": \"episodic_user\", \"conv_id\": \"episodic_session\"}" > /dev/null
 done
 ```
 
@@ -1155,7 +1155,7 @@ curl http://localhost:8000/monitor
 ```json
 {
   "agent_stats": {
-    "general_0": {
+    "triage_0": {
       "total": 10,
       "success_rate": 1.0,
       "avg_ms": 1200.3,
@@ -1369,7 +1369,7 @@ curl http://localhost:8000/health
 # 3. 主对话
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "你好，我想了解退款政策", "user_id": "demo_user", "conv_id": "demo_conv"}'
+  -d '{"message": "你好，我想了解 FlowForge Cloud 的上线实施指南", "user_id": "demo_user", "conv_id": "demo_conv"}'
 
 # 4. 知识库统计
 curl http://localhost:8000/knowledge/stats
