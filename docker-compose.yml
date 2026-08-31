@@ -126,6 +126,29 @@ services:
       retries: 3
       start_period: 10s
 
+  # ── SaaS 运营分析前端 ─────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: echomind-frontend
+    ports:
+      - "5174:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      echomind:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - echomind-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
 # ── 网络 ────────────────────────────────────────────────────────────────────
 networks:
   echomind-network:

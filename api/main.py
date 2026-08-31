@@ -71,6 +71,7 @@ async def lifespan(app: FastAPI):
     print(BANNER, flush=True)
 
     from agents.agent_orchestrator import AgentOrchestrator, Request
+    from agents.tools import build_shared_rag_tools
     from core.intent_recognizer import IntentRecognizer
     from evaluation.evaluator import EndToEndEvaluator
     from mcp.knowledge_base import KnowledgeBase
@@ -155,6 +156,7 @@ async def lifespan(app: FastAPI):
         supports_rerank=True,
         fallback=knowledge_fallback,
     ))
+    _orchestrator.set_shared_tools(build_shared_rag_tools(_tool_manager))
 
     # 性能监控（可选启动 Prometheus）
     prom_port = int(os.getenv("PROMETHEUS_PORT", "0")) or None
@@ -211,6 +213,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     conv_id:     str
+    request_id:  str = ""
     response:    str
     intent:      str
     intent_group: str = "other"
@@ -218,6 +221,7 @@ class ChatResponse(BaseModel):
     agent_types: List[str] = Field(default_factory=list)
     primary_agent: str = ""
     supporting_agents: List[str] = Field(default_factory=list)
+    tools_used: List[str] = Field(default_factory=list)
     routing_reason: str = ""
     routing_confidence: float = 0.0
     escalated:   bool
@@ -226,6 +230,16 @@ class ChatResponse(BaseModel):
     entities: Dict[str, List[str]] = Field(default_factory=dict)
     intent_confidence: float = 0.0
     intent_source_scores: Dict[str, float] = Field(default_factory=dict)
+
+
+class ToolTraceResponse(BaseModel):
+    request_id: str
+    found: bool
+    trace: Dict[str, Any] = Field(default_factory=dict)
+
+
+class RecentToolTracesResponse(BaseModel):
+    items: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 # ── 路由 ──────────────────────────────────────────────────────────────────────
@@ -279,11 +293,8 @@ async def chat(req: ChatRequest):
     ] if mem_ctx.recent_messages else None
 
     intent_result = await _orchestrator.recognize_intent(req.message, history=history)
-    knowledge_text, knowledge_used = await _build_knowledge_context(req.message, intent=intent_result.intent)
-    context_parts = [mem_ctx.to_prompt_text()]
-    if knowledge_text:
-        context_parts.append(knowledge_text)
-    full_context = "\n\n".join(part for part in context_parts if part)
+    # 知识库由各领域 Agent 通过受控 tool-use 按需检索，调用过程会进入请求 trace。
+    full_context = mem_ctx.to_prompt_text()
 
     orch_req = OrcReq(
         message=req.message,
@@ -310,6 +321,7 @@ async def chat(req: ChatRequest):
 
     return ChatResponse(
         conv_id=conv_id,
+        request_id=result.request_id,
         response=result.response,
         intent=result.intent.value if result.intent else "other",
         intent_group=intent_result.intent_group,
@@ -317,11 +329,12 @@ async def chat(req: ChatRequest):
         agent_types=[agent_type.value for agent_type in result.agent_types],
         primary_agent=result.primary_agent.value if result.primary_agent else result.agent_type.value,
         supporting_agents=[agent_type.value for agent_type in result.supporting_agents],
+        tools_used=result.tools_used,
         routing_reason=result.routing_reason,
         routing_confidence=result.routing_confidence,
         escalated=result.escalated,
         latency_ms=round(result.latency_ms, 1),
-        knowledge_used=knowledge_used,
+        knowledge_used="search_knowledge_base" in result.tools_used,
         entities=intent_result.entities,
         intent_confidence=round(intent_result.confidence, 4),
         intent_source_scores=intent_result.source_scores,
@@ -397,6 +410,23 @@ async def monitor_summary():
     if _monitor is None:
         raise HTTPException(503, "服务未就绪")
     return _monitor.summary()
+
+
+@app.get("/trace/tool/{request_id}", response_model=ToolTraceResponse)
+async def get_tool_trace(request_id: str):
+    """查看某次 SaaS 分析请求的 Agent 工具调用明细。"""
+    if _orchestrator is None:
+        raise HTTPException(503, "服务未就绪")
+    trace = _orchestrator.get_tool_trace(request_id)
+    return ToolTraceResponse(request_id=request_id, found=trace is not None, trace=trace or {})
+
+
+@app.get("/trace/tools", response_model=RecentToolTracesResponse)
+async def list_recent_tool_traces(limit: int = 20):
+    """查看最近 N 次请求的工具调用与路由轨迹。"""
+    if _orchestrator is None:
+        raise HTTPException(503, "服务未就绪")
+    return RecentToolTracesResponse(items=_orchestrator.get_recent_tool_traces(limit=limit))
 
 
 @app.get("/metrics")

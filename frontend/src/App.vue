@@ -5,32 +5,17 @@
         <div class="brand-mark">EM</div>
         <div>
           <h1>EchoMind Console</h1>
-          <p>统一调试 Python 与 Java 版本</p>
+          <p>SaaS 客户运营与交付分析工作台</p>
         </div>
       </section>
 
-      <a class="profile-card" href="https://xhslink.com/m/558VOQs4Otc" target="_blank" rel="noreferrer">
-        <span>我的主页</span>
-        <strong>小红书 69.6K 次赞与收藏</strong>
-        <em>来看看我的主页 &gt;&gt;</em>
-      </a>
-
       <section class="panel">
         <div class="panel-heading">
-          <h2>后端</h2>
+          <h2>分析服务</h2>
           <span class="pill">{{ currentBackend.label }}</span>
         </div>
-        <div class="segmented">
-          <button :class="{ active: settings.backend === 'java' }" @click="switchBackend('java')">Java</button>
-          <button :class="{ active: settings.backend === 'python' }" @click="switchBackend('python')">Python</button>
-        </div>
-
         <label>
-          <span>Java API</span>
-          <input v-model="settings.endpoints.java" @change="persist" placeholder="/api/java" />
-        </label>
-        <label>
-          <span>Python API</span>
+          <span>EchoMind API</span>
           <input v-model="settings.endpoints.python" @change="persist" placeholder="/api/python" />
         </label>
         <label>
@@ -45,6 +30,7 @@
         <div class="actions">
           <button @click="checkHealth">健康检查</button>
           <button @click="loadStats">刷新状态</button>
+          <button @click="loadTraces">工具轨迹</button>
         </div>
       </section>
 
@@ -75,11 +61,10 @@
       <header class="workspace-header">
         <div>
           <span class="eyebrow">EchoMind Workspace</span>
-          <h2>对话调试</h2>
+          <h2>SaaS 运营分析</h2>
           <p>{{ currentBackend.baseUrl }}</p>
         </div>
         <div class="header-actions">
-          <a class="profile-link" href="https://xhslink.com/m/558VOQs4Otc" target="_blank" rel="noreferrer">小红书主页</a>
           <a :href="docsUrl" target="_blank" rel="noreferrer">API 文档</a>
         </div>
       </header>
@@ -94,13 +79,13 @@
             <p>{{ item.content }}</p>
           </article>
           <div v-if="messages.length === 0" class="empty-state">
-            <h3>开始一次客服对话</h3>
-            <p>可切换 Java 或 Python 后端，前端会自动适配响应字段。</p>
+            <h3>开始一次客户运营分析</h3>
+            <p>可分析客户交付、技术支持、客户成功、续费风险及跨领域问题。</p>
           </div>
         </div>
 
         <form class="composer" @submit.prevent="sendMessage">
-          <textarea v-model="draft" rows="3" placeholder="输入问题，例如：我想申请退款，订单号是 #12345"></textarea>
+          <textarea v-model="draft" rows="3" placeholder="例如：Webhook 持续返回 401，影响下周上线且客户使用量正在下降，请分析风险和下一步"></textarea>
           <button :disabled="busy || !draft.trim()">{{ busy ? '发送中' : '发送' }}</button>
         </form>
       </section>
@@ -112,7 +97,7 @@
             <span class="pill soft">RAG</span>
           </div>
           <div class="inline-form">
-            <input v-model="searchQuery" placeholder="退款多久能到账" />
+            <input v-model="searchQuery" placeholder="Webhook 集成失败如何排查" />
             <button @click="searchKnowledge" :disabled="busy || !searchQuery.trim()">检索</button>
           </div>
           <div class="result-list">
@@ -131,7 +116,7 @@
           </div>
           <label>
             <span>标题</span>
-            <input v-model="docTitle" placeholder="退款补充政策" />
+            <input v-model="docTitle" placeholder="客户上线验收补充说明" />
           </label>
           <label>
             <span>内容</span>
@@ -160,6 +145,7 @@ import {
   requestHealth,
   requestKnowledgeStats,
   requestMonitor,
+  requestRecentToolTraces,
   requestSearch,
   saveSettings,
   uploadKnowledge
@@ -173,10 +159,10 @@ const healthOk = ref(false)
 const healthLabel = ref('未检查')
 const statusText = ref('')
 const knowledgeCount = ref('-')
-const searchQuery = ref('退款多久能到账')
+const searchQuery = ref('Webhook 集成失败如何排查')
 const searchResults = ref([])
-const docTitle = ref('退款补充政策')
-const docContent = ref('大促期间退款审核时间可能延长到 3-5 个工作日。')
+const docTitle = ref('客户上线验收补充说明')
+const docContent = ref('上线前应确认目标环境、迁移范围、回滚方案、验收指标和上线后观察窗口。')
 const messageList = ref(null)
 
 const currentBackend = computed(() => backendMeta(settings.backend, settings))
@@ -194,16 +180,6 @@ onMounted(() => {
   checkHealth()
   loadStats()
 })
-
-function switchBackend(type) {
-  settings.backend = type
-  persist()
-  healthOk.value = false
-  healthLabel.value = '未检查'
-  statusText.value = ''
-  searchResults.value = []
-  checkHealth()
-}
 
 function persist() {
   saveSettings(settings)
@@ -223,9 +199,12 @@ async function sendMessage() {
     }
     const meta = [
       response.intent,
-      response.agentType,
+      response.primaryAgent || response.agentType,
+      response.supportingAgents?.length ? `协作: ${response.supportingAgents.join(', ')}` : '',
+      response.toolsUsed?.length ? `工具: ${response.toolsUsed.join(', ')}` : '',
       response.knowledgeUsed ? 'RAG' : '',
-      response.escalated ? '转人工' : ''
+      response.escalated ? '风险升级' : '',
+      response.requestId ? `请求 ${response.requestId}` : ''
     ].filter(Boolean).join(' · ')
     messages.value.push({
       id: crypto.randomUUID(),
@@ -272,6 +251,15 @@ async function loadStats() {
     if (monitor.status === 'fulfilled') {
       statusText.value = JSON.stringify(monitor.value, null, 2)
     }
+  } catch (error) {
+    statusText.value = error.message
+  }
+}
+
+async function loadTraces() {
+  try {
+    const data = await requestRecentToolTraces(settings, 20)
+    statusText.value = JSON.stringify(data, null, 2)
   } catch (error) {
     statusText.value = error.message
   }

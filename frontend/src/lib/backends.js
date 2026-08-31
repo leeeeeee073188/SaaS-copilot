@@ -1,27 +1,20 @@
 const DEFAULT_BACKENDS = {
   python: {
     id: 'python',
-    label: 'Python',
+    label: 'EchoMind SaaS API',
     baseUrl: import.meta.env.VITE_PYTHON_API_URL || '/api/python',
     port: '8000'
-  },
-  java: {
-    id: 'java',
-    label: 'Java',
-    baseUrl: import.meta.env.VITE_JAVA_API_URL || '/api/java',
-    port: '8080'
   }
 }
 
 export function createInitialSettings() {
   const saved = readSettings()
   return {
-    backend: saved.backend || 'java',
-    userId: saved.userId || 'u1001',
+    backend: 'python',
+    userId: saved.userId || 'saas_analyst',
     conversationId: saved.conversationId || '',
     endpoints: {
-      python: saved.endpoints?.python || DEFAULT_BACKENDS.python.baseUrl,
-      java: saved.endpoints?.java || DEFAULT_BACKENDS.java.baseUrl
+      python: saved.endpoints?.python || DEFAULT_BACKENDS.python.baseUrl
     }
   }
 }
@@ -31,7 +24,7 @@ export function saveSettings(settings) {
 }
 
 export function backendMeta(type, settings) {
-  const meta = DEFAULT_BACKENDS[type] || DEFAULT_BACKENDS.java
+  const meta = DEFAULT_BACKENDS.python
   return {
     ...meta,
     baseUrl: normalizeBaseUrl(settings.endpoints[type] || meta.baseUrl)
@@ -51,7 +44,7 @@ export async function requestKnowledgeStats(type, settings) {
 }
 
 export async function requestSearch(type, settings, query, topK = 5) {
-  const params = new URLSearchParams({ query, topK: String(topK) })
+  const params = new URLSearchParams({ query, top_k: String(topK) })
   return requestJson(backendMeta(type, settings).baseUrl, `/search?${params}`, { method: 'POST' })
 }
 
@@ -83,28 +76,30 @@ export async function uploadKnowledge(type, settings, file) {
   })
 }
 
+export async function requestRecentToolTraces(settings, limit = 20) {
+  const params = new URLSearchParams({ limit: String(limit) })
+  return requestJson(backendMeta('python', settings).baseUrl, `/trace/tools?${params}`)
+}
+
 function buildChatPayload(type, settings, message) {
-  if (type === 'python') {
-    return {
-      message,
-      user_id: settings.userId || 'anonymous',
-      conv_id: settings.conversationId || undefined
-    }
-  }
   return {
     message,
     user_id: settings.userId || 'anonymous',
-    conversation_id: settings.conversationId || undefined
+    conv_id: settings.conversationId || undefined
   }
 }
 
 function normalizeChatResponse(type, raw) {
   return {
     backend: type,
+    requestId: raw.request_id || raw.requestId || '',
     conversationId: raw.conversation_id || raw.conversationId || raw.conv_id || '',
     response: raw.response || '',
     intent: raw.intent || 'other',
     agentType: raw.agent_type || raw.agentType || '',
+    primaryAgent: raw.primary_agent || raw.primaryAgent || '',
+    supportingAgents: raw.supporting_agents || raw.supportingAgents || [],
+    toolsUsed: raw.tools_used || raw.toolsUsed || [],
     escalated: Boolean(raw.escalated),
     latencyMs: Number(raw.latency_ms ?? raw.latencyMs ?? 0),
     knowledgeUsed: Boolean(raw.knowledge_used ?? raw.knowledgeUsed),

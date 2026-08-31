@@ -119,6 +119,7 @@ docker compose logs -f echomind
 
 | 服务 | 容器名 | 宿主机端口 | 容器内端口 | 用途 |
 |------|--------|------------|------------|------|
+| EchoMind 前端 | `echomind-frontend` | `5174` | `80` | SaaS 运营分析工作台 |
 | EchoMind API | `echomind-app` | `8000` | `8000` | 主 API 服务 |
 | Nginx | `echomind-nginx` | `80` | `80` | 反向代理 |
 | ChromaDB | `echomind-chromadb` | `8001` | `8000` | 向量数据库 |
@@ -135,6 +136,12 @@ Swagger 文档：
 
 ```text
 http://localhost:8000/docs
+```
+
+SaaS 运营分析前端：
+
+```text
+http://localhost:5174
 ```
 
 也可以通过 Nginx 访问：
@@ -219,9 +226,11 @@ http://localhost/docs
 4. POST /knowledge/upload     上传演示知识库文件
 5. POST /search               测试知识库检索、查询改写和重排
 6. GET /monitor               查看 Agent 和工具运行指标
-7. GET /skills                查看已加载 Skills
-8. POST /skills/reload        重新加载 Skills
-9. POST /eval/run             运行端到端评测
+7. GET /trace/tools           查看最近请求的路由和工具轨迹
+8. GET /trace/tool/{id}       按 request_id 回放工具调用
+9. GET /skills                查看已加载 Skills
+10. POST /skills/reload       重新加载 Skills
+11. POST /eval/run            运行端到端评测
 ```
 
 ### 5.1 接口总览
@@ -231,6 +240,8 @@ http://localhost/docs
 | `GET` | `/health` | 无 | 健康检查，返回服务状态和 Agent 统计 | 启动后确认服务可用 |
 | `POST` | `/chat` | JSON Body | 主对话接口，完成记忆读取、意图识别、Agent 路由、回复生成、记忆写入 | 业务主链路 |
 | `GET` | `/monitor` | 无 | 查看 Agent/工具统计、告警和优化建议 | 观察在线表现 |
+| `GET` | `/trace/tools` | Query 参数 | 查看最近请求的路由和工具调用轨迹 | 请求级排障与回放 |
+| `GET` | `/trace/tool/{request_id}` | Path 参数 | 查询指定请求的工具调用明细 | 前后端串联分析 |
 | `POST` | `/search` | Query 参数 | 执行知识库检索优化链路：查询改写、并行召回、合并去重、LLM 重排 | 测试 RAG 检索 |
 | `GET` | `/skills` | 无 | 查看当前加载的 Skills、匹配关键词和解析错误 | 确认动态能力是否生效 |
 | `POST` | `/skills/reload` | 无 | 运行时重新扫描 Skill 目录 | 修改业务规则后热加载 |

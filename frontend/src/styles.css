@@ -265,6 +265,18 @@ label {
   margin-top: 14px;
 }
 
+.sidebar .actions {
+  gap: 6px;
+}
+
+.sidebar .actions button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 7px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .actions button:nth-child(2),
 .inline-form button,
 .file-button {
