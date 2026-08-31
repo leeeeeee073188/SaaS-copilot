@@ -26,6 +26,7 @@ EchoMind/
 ├── mcp/knowledge_base.py          # ChromaDB RAG 知识库
 ├── monitor/performance_monitor.py # Agent/工具在线监控
 ├── evaluation/evaluator.py        # 端到端评测
+├── frontend/                      # Vue 3 + Vite 对话与管理界面
 ├── data/demo_docs/                # 演示知识库文档
 ├── docker-compose.yml             # Docker 全栈编排
 ├── Dockerfile
