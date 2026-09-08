@@ -293,8 +293,13 @@ async def chat(req: ChatRequest):
     ] if mem_ctx.recent_messages else None
 
     intent_result = await _orchestrator.recognize_intent(req.message, history=history)
-    # 知识库由各领域 Agent 通过受控 tool-use 按需检索，调用过程会进入请求 trace。
-    full_context = mem_ctx.to_prompt_text()
+    # 混合触发：证据敏感/高风险请求强制预取，其余由 Agent 通过 tool-use 按需检索。
+    knowledge_context, forced_knowledge_used = await _build_knowledge_context(
+        req.message,
+        intent=intent_result.intent,
+        urgency=intent_result.urgency,
+    )
+    full_context = "\n\n".join(filter(None, (mem_ctx.to_prompt_text(), knowledge_context)))
 
     orch_req = OrcReq(
         message=req.message,
@@ -329,19 +334,26 @@ async def chat(req: ChatRequest):
         agent_types=[agent_type.value for agent_type in result.agent_types],
         primary_agent=result.primary_agent.value if result.primary_agent else result.agent_type.value,
         supporting_agents=[agent_type.value for agent_type in result.supporting_agents],
-        tools_used=result.tools_used,
+        tools_used=list(dict.fromkeys(
+            (["search_knowledge_base"] if forced_knowledge_used else []) + result.tools_used
+        )),
         routing_reason=result.routing_reason,
         routing_confidence=result.routing_confidence,
         escalated=result.escalated,
         latency_ms=round(result.latency_ms, 1),
-        knowledge_used="search_knowledge_base" in result.tools_used,
+        knowledge_used=forced_knowledge_used or "search_knowledge_base" in result.tools_used,
         entities=intent_result.entities,
         intent_confidence=round(intent_result.confidence, 4),
         intent_source_scores=intent_result.source_scores,
     )
 
 
-async def _build_knowledge_context(message: str, intent=None, top_k: int = 3) -> tuple[str, bool]:
+async def _build_knowledge_context(
+    message: str,
+    intent=None,
+    urgency=None,
+    top_k: int = 3,
+) -> tuple[str, bool]:
     """
     为 /chat 主链路构建 RAG 知识上下文。
 
@@ -349,7 +361,7 @@ async def _build_knowledge_context(message: str, intent=None, top_k: int = 3) ->
     """
     if _tool_manager is None:
         return "", False
-    if not _should_use_knowledge(message, intent=intent):
+    if not _should_use_knowledge(message, intent=intent, urgency=urgency):
         return "", False
     try:
         result = await _tool_manager.search_with_rewrite("knowledge_search", message, top_k=top_k)
@@ -371,37 +383,31 @@ async def _build_knowledge_context(message: str, intent=None, top_k: int = 3) ->
 
         if not used:
             return "", False
-        parts.append("请优先依据以上知识库内容回答；如果知识库内容不足，再结合 EchoMind 的内部 SaaS 运营分析能力说明。")
+        parts.append("请优先依据以上知识库内容回答；无需重复检索，除非这些内容不足。")
         return "\n".join(parts), True
     except Exception as ex:
         logger.warning(f"构建知识库上下文失败: {ex}")
         return "", False
 
 
-def _should_use_knowledge(message: str, intent=None) -> bool:
-    """跳过纯寒暄，业务类问题才检索知识库，避免无关 RAG 干扰回复。"""
-    msg = (message or "").strip().lower()
-    if not msg:
+def _should_use_knowledge(message: str, intent=None, urgency=None) -> bool:
+    """仅对高风险或依赖内部规则的请求强制检索，其余交给 Agent 自主判断。"""
+    if not (message or "").strip():
         return False
     intent_value = getattr(intent, "value", intent)
     if intent_value in {"greeting", "feedback", "escalation", "human_handoff", "other"}:
         return False
-    if intent_value in {
-        "query", "request", "technical", "billing", "account", "complaint",
-        "implementation", "integration", "reliability", "entitlement", "adoption",
-        "order_status", "logistics", "refund", "invoice", "payment_issue",
-        "account_security", "technical_login", "technical_crash",
-    }:
+    urgency_value = getattr(urgency, "value", urgency)
+    if urgency_value in {3, 4}:
         return True
-    greetings = {"你好", "您好", "嗨", "hi", "hello", "hey", "早上好", "晚上好"}
-    if msg in greetings:
-        return False
-    business_keywords = [
-        "客户", "项目", "上线", "实施", "迁移", "验收", "培训", "API", "Webhook", "SSO",
-        "SDK", "同步", "故障", "报错", "错误", "SLA", "配额", "权益", "健康度", "使用量",
-        "采用", "续费", "续约", "renewal", "integration", "adoption", "error", "login",
-    ]
-    return len(msg) >= 4 or any(kw in msg for kw in business_keywords)
+    return intent_value in {
+        "technical", "billing", "implementation", "integration", "reliability", "entitlement",
+        "implementation_plan", "account_security",
+        "technical_login", "technical_crash", "environment_setup", "data_migration",
+        "launch_validation", "integration_api", "integration_webhook", "integration_sso",
+        "integration_sync", "reliability_incident", "reliability_performance",
+        "reliability_sla", "success_entitlement", "success_quota",
+    }
 
 
 @app.get("/monitor")

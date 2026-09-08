@@ -15,6 +15,7 @@ import hashlib
 import asyncio
 import json
 import logging
+import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -101,6 +102,9 @@ class MemoryManager:
         self._model  = model
 
         self._redis = redis.from_url(redis_url, decode_responses=True)
+        # 同一用户的画像更新串行执行，避免并发 LLM 调用以完成顺序覆盖画像。
+        # 不同用户使用不同锁，仍可并发更新。
+        self._profile_locks: Dict[str, asyncio.Lock] = {}
 
         # ChromaDB：优先连接独立服务（docker compose 模式），连不上则降级为本地嵌入式
         try:
@@ -164,16 +168,30 @@ class MemoryManager:
         """
         user_id = self._safe_text(user_id)
         conv_id = self._safe_text(conv_id)
+        lock = self._profile_locks.setdefault(user_id, asyncio.Lock())
+        async with lock:
+            await self._update_profile_locked(user_id, conv_id)
+
+    async def _update_profile_locked(self, user_id: str, conv_id: str) -> None:
+        """在单用户锁内生成并覆盖该用户唯一的画像快照。"""
         messages = await self._get_working_memory(user_id, conv_id)
         if not messages:
             return
 
+        old_profile = await self._get_profile(user_id)
+        profile_for_llm = self._redact_profile_for_llm(old_profile)
         text = self._safe_text("\n".join(f"{m.role.value}: {m.content}" for m in messages[-10:]))
-        prompt = f"""从以下对话中提炼用户偏好和关键实体，返回 JSON。
+        source_ts = messages[-1].timestamp.isoformat()
+        prompt = f"""根据已有用户画像和最近对话，提取画像的字段级变更建议，只返回 JSON。
+已有画像:
+{json.dumps(profile_for_llm, ensure_ascii=False)}
+
 对话:
 {text}
 
-返回格式: {{"preferences": ["..."], "entities": {{"产品": [], "问题类型": []}}}}"""
+返回格式: {{"changes": [{{"operation": "add|replace|remove", "section": "preferences|entities", "key": "字段名", "value": "字段值", "evidence": "对话依据", "confidence": 0.95, "explicit": true}}]}}
+confidence 必须是 0 到 1 之间的数字；evidence 应说明最近对话中的依据。
+没有变化时返回 {{"changes": []}}。不要返回密码、令牌、API Key 或其他凭证。"""
         prompt = self._safe_text(prompt)
 
         try:
@@ -183,27 +201,137 @@ class MemoryManager:
             )
             raw = extract_text_content(resp.content)
             s, e = raw.find("{"), raw.rfind("}") + 1
-            profile_data = json.loads(raw[s:e])
+            extracted = json.loads(raw[s:e])
+            if isinstance(extracted, dict) and isinstance(extracted.get("changes"), list):
+                profile_data = self._merge_profile_changes(old_profile, extracted["changes"])
+            else:
+                logger.warning("忽略不符合字段级变更协议的用户画像响应: %s", user_id)
+                return
 
-            doc_id = f"{user_id}_profile_{conv_id}"
+            doc_id = self._profile_doc_id(user_id)
             doc_text = self._safe_text(json.dumps(profile_data, ensure_ascii=False))
-
-            try:
-                await asyncio.to_thread(self._profile.delete, ids=[doc_id])
-            except Exception:
-                pass
 
             # 直接传 documents，让 ChromaDB 内置模型生成 embedding（不依赖 Voyage API）
             await asyncio.to_thread(
-                self._profile.add,
+                self._profile.upsert,
                 ids=[doc_id],
                 documents=[doc_text],
                 metadatas=[{"user_id": user_id, "conv_id": conv_id,
-                            "ts": datetime.now().isoformat()}],
+                            "source_ts": source_ts, "updated_at": datetime.now().isoformat()}],
             )
+            await self._delete_legacy_profile_docs(user_id, doc_id)
             logger.info(f"用户画像已更新: {user_id}")
         except Exception as ex:
             logger.warning(f"更新用户画像失败: {ex}")
+
+    @staticmethod
+    def _merge_profile_changes(old_profile: Any, changes: List[Any]) -> Dict[str, Any]:
+        """将 LLM 提议的增量变更应用到画像；未提及字段保持不变。"""
+        profile = json.loads(json.dumps(old_profile)) if isinstance(old_profile, dict) else {}
+        profile.setdefault("profile_version", 2)
+        updated_at = datetime.now().isoformat()
+        legacy_preferences = profile.get("preferences")
+        if isinstance(legacy_preferences, list):
+            profile["preferences"] = {
+                f"legacy_{hashlib.sha256(json.dumps(value, ensure_ascii=False).encode('utf-8')).hexdigest()[:12]}": {
+                    "value": value,
+                    "source": "legacy_profile",
+                    "confidence": 0.7,
+                    "updated_at": str(profile.get("updated_at") or updated_at),
+                    "expires_at": None,
+                }
+                for value in legacy_preferences
+            }
+        elif not isinstance(legacy_preferences, dict):
+            profile["preferences"] = {}
+        if not isinstance(profile.get("entities"), dict):
+            profile["entities"] = {}
+
+        for change in changes:
+            if not isinstance(change, dict):
+                continue
+            operation = change.get("operation")
+            section = change.get("section")
+            key = change.get("key")
+            if section not in ("preferences", "entities") or not isinstance(key, str) or not key.strip():
+                continue
+            key = key.strip()
+            if operation != "remove" and MemoryManager._is_sensitive_profile_change(key, change.get("value")):
+                continue
+            confidence = change.get("confidence", 0.0)
+            valid_confidence = (
+                isinstance(confidence, (int, float))
+                and not isinstance(confidence, bool)
+                and 0.0 <= confidence <= 1.0
+            )
+            if operation == "add":
+                if not valid_confidence or confidence < 0.7 or key in profile[section]:
+                    continue
+            if operation == "replace":
+                if change.get("explicit") is not True or not valid_confidence or confidence < 0.8:
+                    continue
+                if key not in profile[section]:
+                    continue
+            if operation == "remove":
+                if change.get("explicit") is not True or not valid_confidence or confidence < 0.9:
+                    continue
+                profile[section].pop(key, None)
+                continue
+            if operation in ("add", "replace"):
+                profile[section][key] = {
+                    "value": change.get("value"),
+                    "source": str(change.get("evidence") or ""),
+                    "confidence": confidence,
+                    "updated_at": updated_at,
+                    "expires_at": None,
+                }
+        profile["updated_at"] = updated_at
+        return profile
+
+    @staticmethod
+    def _is_sensitive_profile_change(key: str, value: Any) -> bool:
+        """阻止凭证字段及典型密钥值进入长期用户画像。"""
+        normalized_key = re.sub(r"[^a-z0-9\u4e00-\u9fff]+", "_", key.lower()).strip("_")
+        blocked_keys = (
+            "password", "passwd", "secret", "token", "api_key", "apikey",
+            "credential", "private_key", "access_key", "密码", "密钥", "令牌", "凭证",
+        )
+        if any(term in normalized_key for term in blocked_keys):
+            return True
+        serialized_value = json.dumps(value, ensure_ascii=False) if value is not None else ""
+        secret_patterns = (
+            r"\bsk-[A-Za-z0-9_-]{8,}\b",
+            r"\bAKIA[A-Z0-9]{12,}\b",
+            r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b",
+        )
+        return any(re.search(pattern, serialized_value) for pattern in secret_patterns)
+
+    @staticmethod
+    def _redact_profile_for_llm(profile: Any) -> Dict[str, Any]:
+        """生成仅供语义判断的画像副本，过滤可能遗留的凭证。"""
+        if not isinstance(profile, dict):
+            return {}
+        safe_profile = {
+            key: profile[key]
+            for key in ("profile_version", "updated_at")
+            if key in profile
+        }
+        for section in ("preferences", "entities"):
+            values = profile.get(section)
+            if isinstance(values, dict):
+                safe_profile[section] = {
+                    key: value
+                    for key, value in values.items()
+                    if not MemoryManager._is_sensitive_profile_change(
+                        str(key), value.get("value") if isinstance(value, dict) else value
+                    )
+                }
+            elif isinstance(values, list):
+                safe_profile[section] = [
+                    value for value in values
+                    if not MemoryManager._is_sensitive_profile_change("", value)
+                ]
+        return safe_profile
 
     # ── 读取 ──────────────────────────────────────────────────────────────────
 
@@ -340,14 +468,40 @@ class MemoryManager:
             logger.warning(f"存储情景记忆失败: {ex}")
 
     async def _get_profile(self, user_id: str) -> Dict[str, Any]:
-        """获取用户画像（取最新一条）。"""
+        """获取用户唯一画像；兼容旧的按会话画像并按时间选择最新记录。"""
         try:
-            results = await asyncio.to_thread(self._profile.get, where={"user_id": user_id}, limit=1)
-            if results["documents"]:
-                return json.loads(results["documents"][0])
+            canonical = await asyncio.to_thread(
+                self._profile.get,
+                ids=[self._profile_doc_id(user_id)],
+            )
+            if canonical.get("documents"):
+                return json.loads(canonical["documents"][0])
+
+            # 兼容升级前的 `{user_id}_profile_{conv_id}` 多记录结构。
+            legacy = await asyncio.to_thread(self._profile.get, where={"user_id": user_id})
+            documents = legacy.get("documents") or []
+            metadatas = legacy.get("metadatas") or []
+            if documents:
+                newest_index = max(
+                    range(len(documents)),
+                    key=lambda index: self._profile_timestamp(
+                        metadatas[index] if index < len(metadatas) else {}
+                    ),
+                )
+                return json.loads(documents[newest_index])
         except Exception:
             pass
         return {}
+
+    async def _delete_legacy_profile_docs(self, user_id: str, canonical_id: str) -> None:
+        """在写入唯一画像后清理该用户遗留的按会话画像记录。"""
+        try:
+            records = await asyncio.to_thread(self._profile.get, where={"user_id": user_id})
+            legacy_ids = [doc_id for doc_id in (records.get("ids") or []) if doc_id != canonical_id]
+            if legacy_ids:
+                await asyncio.to_thread(self._profile.delete, ids=legacy_ids)
+        except Exception as ex:
+            logger.debug("清理旧用户画像失败: %s", ex)
 
     async def close(self) -> None:
         """关闭异步 Redis 连接。"""
@@ -360,6 +514,18 @@ class MemoryManager:
     @staticmethod
     def _summary_key(user_id: str, conv_id: str) -> str:
         return f"summary:{user_id}:{conv_id}"
+
+    @staticmethod
+    def _profile_doc_id(user_id: str) -> str:
+        """生成稳定且不暴露原始用户标识的 ChromaDB 画像文档 ID。"""
+        digest = hashlib.sha256(user_id.encode("utf-8")).hexdigest()
+        return f"user_profile:{digest}"
+
+    @staticmethod
+    def _profile_timestamp(metadata: Any) -> str:
+        if not isinstance(metadata, dict):
+            return ""
+        return str(metadata.get("source_ts") or metadata.get("updated_at") or metadata.get("ts") or "")
 
     @staticmethod
     def _safe_text(value: Any) -> str:

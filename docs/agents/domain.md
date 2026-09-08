@@ -1,31 +1,25 @@
 # Domain Docs
 
-How the engineering skills should consume this repo's domain documentation when exploring the codebase.
+Engineering skills must read the root `CONTEXT.md` before exploring the
+codebase and read relevant decisions under `docs/adr/`.
 
-## Before exploring, read these
-
-- **`CONTEXT.md`** at the repo root, or **`CONTEXT-MAP.md`** at the repo root if it exists.
-- **`docs/adr/`**: read ADRs that touch the area you're about to work in.
-
-If these files do not exist, proceed silently. The `/domain-modeling` skill creates them lazily when terms or decisions are resolved.
-
-## File structure
+## Layout
 
 This is a single-context repository:
 
 ```text
 /
 ├── CONTEXT.md
-├── docs/adr/
-│   ├── 0001-example-decision.md
-│   └── 0002-example-decision.md
-└── src/
+└── docs/adr/
 ```
 
-## Use the glossary's vocabulary
+## Vocabulary
 
-When output names a domain concept, use the term as defined in `CONTEXT.md`. If the concept is not in the glossary, reconsider whether the project uses a different term or record the gap with `/domain-modeling`.
+Use the canonical terms defined in `CONTEXT.md` in issue titles,
+specifications, tests and code. If a required concept is missing, record the
+gap through the domain-modeling workflow.
 
-## Flag ADR conflicts
+## ADR conflicts
 
-If output contradicts an existing ADR, surface it explicitly rather than silently overriding it.
+If proposed work contradicts an existing ADR, surface the conflict explicitly
+instead of silently overriding the decision.

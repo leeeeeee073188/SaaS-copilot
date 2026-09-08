@@ -15,6 +15,7 @@ from agents.agent_orchestrator import (
     TriageAgent,
 )
 from agents.tools import build_shared_rag_tools
+from api.main import _should_use_knowledge
 from core.intent_recognizer import IntentCategory, UrgencyLevel
 
 
@@ -50,6 +51,28 @@ def make_request(**kwargs):
 
 
 class AgentOrchestratorTests(unittest.TestCase):
+    def test_hybrid_knowledge_trigger_forces_only_evidence_sensitive_requests(self):
+        self.assertTrue(_should_use_knowledge(
+            "Webhook 401 怎么处理？",
+            intent=IntentCategory.INTEGRATION_WEBHOOK,
+            urgency=UrgencyLevel.MEDIUM,
+        ))
+        self.assertTrue(_should_use_knowledge(
+            "客户生产环境出现严重故障",
+            intent=IntentCategory.COMPLAINT,
+            urgency=UrgencyLevel.CRITICAL,
+        ))
+        self.assertFalse(_should_use_knowledge(
+            "帮我分析下一步",
+            intent=IntentCategory.REQUEST,
+            urgency=UrgencyLevel.MEDIUM,
+        ))
+        self.assertFalse(_should_use_knowledge(
+            "你好",
+            intent=IntentCategory.GREETING,
+            urgency=UrgencyLevel.LOW,
+        ))
+
     def test_profiles_and_tool_scopes_match_saas_domains(self):
         self.assertIsInstance(TriageAgent.profile, AgentProfile)
         self.assertNotEqual(DeliveryAgent.profile.role, SupportAgent.profile.role)
