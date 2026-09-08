@@ -2,7 +2,12 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR 0002](./0002-tool-enabled-b2b-saas-service.md) on 2026-09-08.
+
+This document records the original analysis-only scope. The user subsequently
+expanded the target product to tool-enabled B2B SaaS service and management.
+The historical restrictions below are not the current product direction;
+runtime code may still reflect them until the new plan is implemented.
 
 ## Decision
 

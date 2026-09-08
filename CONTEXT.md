@@ -1,49 +1,86 @@
-# EchoMind Domain Context
+# EchoMind and FlowForge Cloud Domain Context
 
-## Product
+EchoMind is a tool-enabled B2B SaaS service agent for product consultation,
+API integration support, subscription and billing management, and enterprise
+account management. FlowForge Cloud is the fictional data integration SaaS
+whose business capabilities it serves. These definitions describe the target
+domain; runtime implementation status is recorded in the project plans.
 
-EchoMind is an internal question-answering and analysis agent for SaaS
-companies. It supports employees who work on customer delivery, customer
-success, technical support, and renewal operations.
+## Language
 
-The system answers internal business questions about customer projects,
-service issues, and customer operations. It retrieves evidence, analyzes the
-request, and proposes next steps. It does not execute production changes or
-replace an organization's permission system.
+### Product and Customers
 
-## Canonical Terms
+**EchoMind**: The conversational service that explains product capabilities,
+retrieves evidence, and uses registered business tools on a user's behalf.
 
-- **Customer project**: the delivery and adoption context for one SaaS customer.
-- **Service issue**: a technical, integration, reliability, or usage problem
-  affecting a customer project.
-- **Customer operation**: activities related to adoption, account health,
-  value realization, and renewal readiness.
-- **Delivery**: implementation planning, configuration, migration, rollout,
-  and enablement.
-- **Support**: technical and integration diagnosis, impact analysis, and
-  troubleshooting guidance.
-- **Success**: customer health, adoption improvement, and value-oriented
-  follow-up recommendations.
-- **Renewal**: analysis of renewal readiness, usage signals, risks, and
-  recommended interventions.
+**FlowForge Cloud**: A fictional B2B SaaS product for configuring data
+integrations, observing synchronization jobs, and managing organizational
+subscriptions and access.
 
-## Agent Vocabulary
+**Organization**: A customer enterprise that owns its subscriptions, members,
+projects and integration resources. It is the customer data isolation scope.
+_Avoid_: Using account to mean both an organization and an individual user.
 
-- `TriageAgent` selects the relevant analysis capabilities and synthesizes
-  results.
-- `DeliveryAgent` handles implementation and rollout analysis.
-- `SupportAgent` handles technical, integration, and reliability analysis.
-- `SuccessAgent` handles adoption, entitlement, and customer-health analysis.
-- `RenewalAgent` handles renewal-readiness analysis.
+**User**: An individual who may belong to one or more organizations.
 
-The user does not need a department-specific identity or permission context to
-use these capabilities. Routing is based on the question, its entities, and
-the available knowledge.
+**Membership**: A user's role and active access within a specific organization.
 
-## Answer Types
+**Support assignment**: The explicit scope in which a SaaS support employee may
+assist a customer organization; support employment alone does not grant access
+to all organizations or authority to change their subscriptions.
 
-- **Fact lookup**: retrieve a documented product, project, or service fact.
-- **Issue analysis**: explain likely causes, impact, and risks.
-- **Recommendation**: propose delivery, support, success, or renewal actions.
-- **Cross-domain synthesis**: combine several specialist analyses into one
-  conclusion with evidence and prioritized recommendations.
+**Customer project**: A delivery and adoption initiative within an organization,
+containing integration resources and an intended business outcome.
+
+### Product Usage
+
+**Integration**: A project's configured connection to a source or destination,
+such as an API or Webhook endpoint.
+
+**Sync run**: One recorded execution of a configured data synchronization task.
+
+**Service issue**: A technical, reliability or usage problem affecting a
+customer project or integration.
+
+**Entitlement**: A capability or limit granted by an organization's effective
+subscription or explicit service agreement.
+
+**Usage**: Measured consumption of a named product resource within a defined
+period; it is distinct from the entitlement limit.
+
+### Subscription and Enterprise Account Management
+
+**Plan**: A versioned offer specifying capabilities, limits and pricing rules.
+
+**Subscription**: An organization's agreement to a plan for a billing period,
+including its effective state and any scheduled change.
+
+**Invoice**: A statement of charges and payment status for an organization and
+period. Reading or generating an invoice does not imply payment succeeded.
+
+**Invitation**: A pending offer of membership with a specified organization and
+role; it is distinct from an active membership.
+
+**Business operation**: A requested change to a subscription, membership or
+other SaaS resource through an authorized business capability.
+
+**Change preview**: A concrete proposed operation with its target, effective
+time, expected financial or access impact, and applicable preconditions.
+
+**Operation receipt**: The recorded outcome of a business operation, including
+its target, status and resulting resource state.
+
+### Analysis and Knowledge
+
+**Product knowledge**: Versioned documentation describing product behavior,
+API contracts and business rules; current customer state is checked separately.
+
+**Delivery**: Implementation planning, configuration, migration, rollout and
+enablement for a customer project.
+
+**Support**: Technical diagnosis, integration assistance and issue resolution.
+
+**Success**: Adoption, customer-health and value-realization assistance.
+
+**Renewal**: Assistance with renewal readiness and the organization's intended
+subscription continuation or change.

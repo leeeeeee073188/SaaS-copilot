@@ -1,0 +1,1467 @@
+{
+  "schema": "flowforge-state-eval-v1",
+  "generated_at": "2026-09-08T16:00:15.860622+00:00",
+  "base_revision": "278961884688b365c8a842e48cd82d47b3c20d0d",
+  "engine": "deterministic_demo",
+  "scope": "60 parameterized integration cases; not 60 independent natural-language tasks or a model-quality benchmark",
+  "embedding": "lexical",
+  "model": null,
+  "database_path": "C:\\Users\\ligui\\AppData\\Local\\Temp\\flowforge-eval-wngspe92",
+  "total": 60,
+  "passed": 60,
+  "chat_latency_ms": {
+    "p50": 47.0,
+    "p95": 63.0
+  },
+  "results": [
+    {
+      "id": "aurora.owner.product",
+      "org": "aurora",
+      "role": "owner",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 204.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.owner.integration",
+      "org": "aurora",
+      "role": "owner",
+      "task": "integration",
+      "message": "查询 int_aurora 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_integration_requests",
+          "success": true,
+          "status": "ok",
+          "input": {
+            "integration_id": "int_aurora"
+          }
+        },
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_aurora-snapshot",
+        "ff-product-00",
+        "ff-billing-22",
+        "get_integration_requests",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.owner.invoice",
+      "org": "aurora",
+      "role": "owner",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 46.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "list_invoices",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26",
+        "list_invoices"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.owner.subscription",
+      "org": "aurora",
+      "role": "owner",
+      "task": "subscription",
+      "message": "下周期升级到 Growth",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "preview_subscription_change",
+          "success": true,
+          "status": "requires_confirmation",
+          "input": {
+            "target_plan": "growth_v1"
+          }
+        }
+      ],
+      "sources": [
+        "ff-product-02",
+        "ff-product-00",
+        "ff-product-03"
+      ],
+      "audit_count": 1
+    },
+    {
+      "id": "aurora.owner.invitation",
+      "org": "aurora",
+      "role": "owner",
+      "task": "invitation",
+      "message": "邀请 eval-owner@aurora.example 为 developer",
+      "passed": true,
+      "latency_ms": 63.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "invite_member",
+          "success": true,
+          "status": "pending",
+          "input": {
+            "email": "eval-owner@aurora.example"
+          }
+        }
+      ],
+      "sources": [
+        "ff-account-23",
+        "ff-account-26",
+        "ff-account-29"
+      ],
+      "audit_count": 1
+    },
+    {
+      "id": "aurora.admin.product",
+      "org": "aurora",
+      "role": "admin",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 62.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.admin.integration",
+      "org": "aurora",
+      "role": "admin",
+      "task": "integration",
+      "message": "查询 int_aurora 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 63.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_integration_requests",
+          "success": true,
+          "status": "ok",
+          "input": {
+            "integration_id": "int_aurora"
+          }
+        },
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_aurora-snapshot",
+        "ff-product-00",
+        "ff-billing-22",
+        "get_integration_requests",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.admin.invoice",
+      "org": "aurora",
+      "role": "admin",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.admin.subscription",
+      "org": "aurora",
+      "role": "admin",
+      "task": "subscription",
+      "message": "下周期升级到 Growth",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-product-02",
+        "ff-product-00",
+        "ff-product-03"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.admin.invitation",
+      "org": "aurora",
+      "role": "admin",
+      "task": "invitation",
+      "message": "邀请 eval-admin@aurora.example 为 developer",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "invite_member",
+          "success": true,
+          "status": "pending",
+          "input": {
+            "email": "eval-admin@aurora.example"
+          }
+        }
+      ],
+      "sources": [
+        "ff-account-23",
+        "ff-account-26",
+        "org_aurora-snapshot"
+      ],
+      "audit_count": 1
+    },
+    {
+      "id": "aurora.billing_admin.product",
+      "org": "aurora",
+      "role": "billing_admin",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.billing_admin.integration",
+      "org": "aurora",
+      "role": "billing_admin",
+      "task": "integration",
+      "message": "查询 int_aurora 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_aurora-snapshot",
+        "ff-product-00",
+        "ff-billing-22",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.billing_admin.invoice",
+      "org": "aurora",
+      "role": "billing_admin",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 32.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "list_invoices",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26",
+        "list_invoices"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.billing_admin.subscription",
+      "org": "aurora",
+      "role": "billing_admin",
+      "task": "subscription",
+      "message": "下周期升级到 Growth",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "preview_subscription_change",
+          "success": true,
+          "status": "requires_confirmation",
+          "input": {
+            "target_plan": "growth_v1"
+          }
+        }
+      ],
+      "sources": [
+        "ff-product-02",
+        "ff-product-00",
+        "ff-product-03"
+      ],
+      "audit_count": 1
+    },
+    {
+      "id": "aurora.billing_admin.invitation",
+      "org": "aurora",
+      "role": "billing_admin",
+      "task": "invitation",
+      "message": "邀请 eval-billing_admin@aurora.example 为 developer",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-account-26",
+        "ff-account-23",
+        "org_aurora-snapshot"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.developer.product",
+      "org": "aurora",
+      "role": "developer",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 31.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.developer.integration",
+      "org": "aurora",
+      "role": "developer",
+      "task": "integration",
+      "message": "查询 int_aurora 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_integration_requests",
+          "success": true,
+          "status": "ok",
+          "input": {
+            "integration_id": "int_aurora"
+          }
+        },
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_aurora-snapshot",
+        "ff-product-00",
+        "ff-billing-22",
+        "get_integration_requests",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.developer.invoice",
+      "org": "aurora",
+      "role": "developer",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 31.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.developer.subscription",
+      "org": "aurora",
+      "role": "developer",
+      "task": "subscription",
+      "message": "下周期升级到 Growth",
+      "passed": true,
+      "latency_ms": 31.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-product-02",
+        "ff-product-00",
+        "ff-product-03"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "aurora.developer.invitation",
+      "org": "aurora",
+      "role": "developer",
+      "task": "invitation",
+      "message": "邀请 eval-developer@aurora.example 为 developer",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-account-23",
+        "ff-account-26",
+        "ff-account-29"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.owner.product",
+      "org": "beacon",
+      "role": "owner",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.owner.integration",
+      "org": "beacon",
+      "role": "owner",
+      "task": "integration",
+      "message": "查询 int_beacon 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 63.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_integration_requests",
+          "success": true,
+          "status": "ok",
+          "input": {
+            "integration_id": "int_beacon"
+          }
+        },
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_beacon-snapshot",
+        "ff-product-00",
+        "ff-account-23",
+        "get_integration_requests",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.owner.invoice",
+      "org": "beacon",
+      "role": "owner",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 46.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "list_invoices",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26",
+        "list_invoices"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.owner.subscription",
+      "org": "beacon",
+      "role": "owner",
+      "task": "subscription",
+      "message": "下周期降级到 Starter",
+      "passed": true,
+      "latency_ms": 31.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "preview_subscription_change",
+          "success": false,
+          "status": "seats_full",
+          "input": {
+            "target_plan": "starter_v1"
+          }
+        }
+      ],
+      "sources": [
+        "ff-product-02",
+        "ff-product-03",
+        "ff-integration-09"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.owner.invitation",
+      "org": "beacon",
+      "role": "owner",
+      "task": "invitation",
+      "message": "邀请 eval-owner@beacon.example 为 developer",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "invite_member",
+          "success": false,
+          "status": "seats_full",
+          "input": {
+            "email": "eval-owner@beacon.example"
+          }
+        }
+      ],
+      "sources": [
+        "ff-account-23",
+        "ff-account-26",
+        "ff-account-29"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.admin.product",
+      "org": "beacon",
+      "role": "admin",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.admin.integration",
+      "org": "beacon",
+      "role": "admin",
+      "task": "integration",
+      "message": "查询 int_beacon 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 46.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_integration_requests",
+          "success": true,
+          "status": "ok",
+          "input": {
+            "integration_id": "int_beacon"
+          }
+        },
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_beacon-snapshot",
+        "ff-product-00",
+        "ff-account-23",
+        "get_integration_requests",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.admin.invoice",
+      "org": "beacon",
+      "role": "admin",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.admin.subscription",
+      "org": "beacon",
+      "role": "admin",
+      "task": "subscription",
+      "message": "下周期降级到 Starter",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-product-02",
+        "ff-product-03",
+        "ff-integration-09"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.admin.invitation",
+      "org": "beacon",
+      "role": "admin",
+      "task": "invitation",
+      "message": "邀请 eval-admin@beacon.example 为 developer",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "invite_member",
+          "success": false,
+          "status": "seats_full",
+          "input": {
+            "email": "eval-admin@beacon.example"
+          }
+        }
+      ],
+      "sources": [
+        "ff-account-23",
+        "ff-account-26",
+        "org_beacon-snapshot"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.billing_admin.product",
+      "org": "beacon",
+      "role": "billing_admin",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.billing_admin.integration",
+      "org": "beacon",
+      "role": "billing_admin",
+      "task": "integration",
+      "message": "查询 int_beacon 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_beacon-snapshot",
+        "ff-product-00",
+        "ff-account-23",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.billing_admin.invoice",
+      "org": "beacon",
+      "role": "billing_admin",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "list_invoices",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26",
+        "list_invoices"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.billing_admin.subscription",
+      "org": "beacon",
+      "role": "billing_admin",
+      "task": "subscription",
+      "message": "下周期降级到 Starter",
+      "passed": true,
+      "latency_ms": 62.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "preview_subscription_change",
+          "success": false,
+          "status": "seats_full",
+          "input": {
+            "target_plan": "starter_v1"
+          }
+        }
+      ],
+      "sources": [
+        "ff-product-02",
+        "ff-product-03",
+        "ff-integration-09"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.billing_admin.invitation",
+      "org": "beacon",
+      "role": "billing_admin",
+      "task": "invitation",
+      "message": "邀请 eval-billing_admin@beacon.example 为 developer",
+      "passed": true,
+      "latency_ms": 31.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-account-26",
+        "ff-account-23",
+        "org_beacon-snapshot"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.developer.product",
+      "org": "beacon",
+      "role": "developer",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 62.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.developer.integration",
+      "org": "beacon",
+      "role": "developer",
+      "task": "integration",
+      "message": "查询 int_beacon 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 46.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_integration_requests",
+          "success": true,
+          "status": "ok",
+          "input": {
+            "integration_id": "int_beacon"
+          }
+        },
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_beacon-snapshot",
+        "ff-product-00",
+        "ff-account-23",
+        "get_integration_requests",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.developer.invoice",
+      "org": "beacon",
+      "role": "developer",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.developer.subscription",
+      "org": "beacon",
+      "role": "developer",
+      "task": "subscription",
+      "message": "下周期降级到 Starter",
+      "passed": true,
+      "latency_ms": 31.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-product-02",
+        "ff-product-03",
+        "ff-integration-09"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "beacon.developer.invitation",
+      "org": "beacon",
+      "role": "developer",
+      "task": "invitation",
+      "message": "邀请 eval-developer@beacon.example 为 developer",
+      "passed": true,
+      "latency_ms": 32.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-account-23",
+        "ff-account-26",
+        "ff-account-29"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.owner.product",
+      "org": "cedar",
+      "role": "owner",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.owner.integration",
+      "org": "cedar",
+      "role": "owner",
+      "task": "integration",
+      "message": "查询 int_cedar 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_integration_requests",
+          "success": true,
+          "status": "ok",
+          "input": {
+            "integration_id": "int_cedar"
+          }
+        },
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_cedar-snapshot",
+        "ff-account-23",
+        "ff-billing-22",
+        "get_integration_requests",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.owner.invoice",
+      "org": "cedar",
+      "role": "owner",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "list_invoices",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26",
+        "list_invoices"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.owner.subscription",
+      "org": "cedar",
+      "role": "owner",
+      "task": "subscription",
+      "message": "下周期升级到 Growth",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "preview_subscription_change",
+          "success": true,
+          "status": "requires_confirmation",
+          "input": {
+            "target_plan": "growth_v1"
+          }
+        }
+      ],
+      "sources": [
+        "ff-product-02",
+        "ff-product-00",
+        "ff-product-03"
+      ],
+      "audit_count": 1
+    },
+    {
+      "id": "cedar.owner.invitation",
+      "org": "cedar",
+      "role": "owner",
+      "task": "invitation",
+      "message": "邀请 eval-owner@cedar.example 为 developer",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "invite_member",
+          "success": false,
+          "status": "seats_full",
+          "input": {
+            "email": "eval-owner@cedar.example"
+          }
+        }
+      ],
+      "sources": [
+        "ff-account-23",
+        "ff-account-26",
+        "ff-account-29"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.admin.product",
+      "org": "cedar",
+      "role": "admin",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 31.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.admin.integration",
+      "org": "cedar",
+      "role": "admin",
+      "task": "integration",
+      "message": "查询 int_cedar 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_integration_requests",
+          "success": true,
+          "status": "ok",
+          "input": {
+            "integration_id": "int_cedar"
+          }
+        },
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_cedar-snapshot",
+        "ff-account-23",
+        "ff-billing-22",
+        "get_integration_requests",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.admin.invoice",
+      "org": "cedar",
+      "role": "admin",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 31.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.admin.subscription",
+      "org": "cedar",
+      "role": "admin",
+      "task": "subscription",
+      "message": "下周期升级到 Growth",
+      "passed": true,
+      "latency_ms": 31.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-product-02",
+        "ff-product-00",
+        "ff-product-03"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.admin.invitation",
+      "org": "cedar",
+      "role": "admin",
+      "task": "invitation",
+      "message": "邀请 eval-admin@cedar.example 为 developer",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "invite_member",
+          "success": false,
+          "status": "seats_full",
+          "input": {
+            "email": "eval-admin@cedar.example"
+          }
+        }
+      ],
+      "sources": [
+        "ff-account-23",
+        "ff-account-26",
+        "org_cedar-snapshot"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.billing_admin.product",
+      "org": "cedar",
+      "role": "billing_admin",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 63.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.billing_admin.integration",
+      "org": "cedar",
+      "role": "billing_admin",
+      "task": "integration",
+      "message": "查询 int_cedar 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_cedar-snapshot",
+        "ff-account-23",
+        "ff-billing-22",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.billing_admin.invoice",
+      "org": "cedar",
+      "role": "billing_admin",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "list_invoices",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26",
+        "list_invoices"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.billing_admin.subscription",
+      "org": "cedar",
+      "role": "billing_admin",
+      "task": "subscription",
+      "message": "下周期升级到 Growth",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "preview_subscription_change",
+          "success": true,
+          "status": "requires_confirmation",
+          "input": {
+            "target_plan": "growth_v1"
+          }
+        }
+      ],
+      "sources": [
+        "ff-product-02",
+        "ff-product-00",
+        "ff-product-03"
+      ],
+      "audit_count": 1
+    },
+    {
+      "id": "cedar.billing_admin.invitation",
+      "org": "cedar",
+      "role": "billing_admin",
+      "task": "invitation",
+      "message": "邀请 eval-billing_admin@cedar.example 为 developer",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-account-26",
+        "ff-account-23",
+        "org_cedar-snapshot"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.developer.product",
+      "org": "cedar",
+      "role": "developer",
+      "task": "product",
+      "message": "介绍产品功能",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_entitlements",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "ff-integration-14",
+        "ff-integration-07",
+        "ff-account-28",
+        "get_entitlements"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.developer.integration",
+      "org": "cedar",
+      "role": "developer",
+      "task": "integration",
+      "message": "查询 int_cedar 的 API 请求错误",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [
+        {
+          "tool_name": "get_integration_requests",
+          "success": true,
+          "status": "ok",
+          "input": {
+            "integration_id": "int_cedar"
+          }
+        },
+        {
+          "tool_name": "get_usage",
+          "success": true,
+          "status": "ok",
+          "input": {}
+        }
+      ],
+      "sources": [
+        "org_cedar-snapshot",
+        "ff-account-23",
+        "ff-billing-22",
+        "get_integration_requests",
+        "get_usage"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.developer.invoice",
+      "org": "cedar",
+      "role": "developer",
+      "task": "invoice",
+      "message": "查询本企业账单",
+      "passed": true,
+      "latency_ms": 47.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-billing-18",
+        "ff-billing-20",
+        "ff-account-26"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.developer.subscription",
+      "org": "cedar",
+      "role": "developer",
+      "task": "subscription",
+      "message": "下周期升级到 Growth",
+      "passed": true,
+      "latency_ms": 31.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-product-02",
+        "ff-product-00",
+        "ff-product-03"
+      ],
+      "audit_count": 0
+    },
+    {
+      "id": "cedar.developer.invitation",
+      "org": "cedar",
+      "role": "developer",
+      "task": "invitation",
+      "message": "邀请 eval-developer@cedar.example 为 developer",
+      "passed": true,
+      "latency_ms": 31.0,
+      "engine": "deterministic_demo",
+      "tools": [],
+      "sources": [
+        "ff-account-23",
+        "ff-account-26",
+        "ff-account-29"
+      ],
+      "audit_count": 0
+    }
+  ]
+}

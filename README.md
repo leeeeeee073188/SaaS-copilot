@@ -1,5 +1,10 @@
 # EchoMind 完整使用指南
 
+> **V2 业务闭环已实现**：EchoMind 支持功能咨询、API 对接、订阅账单和企业账户管理，FlowForge 提供有状态模拟业务。
+> 查看 [V2 优化方案](docs/b2b-saas-agent-plan-v2-2026-09-08.md)、[FlowForge 有状态沙箱设计](docs/flowforge-sandbox-spec-2026-09-08.md) 和 [补充调研](docs/saas-tooling-research-2026-09-08.md)。
+> 从 [V2 运行与验收说明](docs/implementation-v2.md) 开始；[实施 Spec](docs/spec-b2b-saas-v2.md) 和 [60 用例测评报告](docs/eval-v2-report.json) 可直接核验。默认离线演示不调用付费模型。
+> 下文保留原分析模式指南；设置 `ECHOMIND_DEMO=1` 后启用新工作台及 `/saas/*` 接口。
+
 本文档说明 EchoMind 的部署、启动、API 调用、知识库使用、ChromaDB 数据查看、监控评测和常见排障。
 
 EchoMind 是一个面向 SaaS 企业内部员工的客户运营与交付问答/分析系统，核心链路为：
