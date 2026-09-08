@@ -14,6 +14,8 @@ def business_tools(service, knowledge, actor, decision):
             return
         if effect in {"prepare", "write"} and decision["action"] not in {"change", "preview"}:
             return
+        if effect == "write" and decision["action"] != "change":
+            return
         if domain not in decision["domains"] and domain != "product":
             return
 

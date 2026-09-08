@@ -39,6 +39,9 @@ class BusinessAgentTest(unittest.TestCase):
             names = [t["name"] for t in client.messages.create.call_args_list[0].kwargs["tools"]]
             self.assertNotIn("confirm", names)
             self.assertNotIn("advance_clock", names)
+            preview_only = business_tools(service, kb, actor, {"domains": ["billing"], "action": "preview"})
+            self.assertIn("preview_subscription_change", preview_only)
+            self.assertNotIn("apply_subscription_change", preview_only)
             denied = business_tools(service, kb, Actor("aurora_developer", "org_aurora", "developer"), {"domains": ["billing"], "action": "change"})
             self.assertNotIn("apply_subscription_change", denied)
         asyncio.run(run())

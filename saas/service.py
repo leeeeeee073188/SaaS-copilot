@@ -119,7 +119,7 @@ class SaaSService:
         return hashlib.sha256(value.encode()).hexdigest()
 
     def read(self, actor, resource, integration_id=None):
-        permission = {"subscription": "billing.read", "invoices": "billing.read", "requests": "integration.read"}.get(resource)
+        permission = {"subscription": "billing.read", "invoices": "billing.read", "requests": "integration.read", "integrations": "integration.read"}.get(resource)
         with self.tx() as db:
             state = self._authorize(db, actor, permission)
             plan = PLANS[state["subscription"]["plan_id"]]

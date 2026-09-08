@@ -62,7 +62,10 @@ class ChatService:
             return data
 
         text = req.message.lower()
-        if req.domain == "billing" and req.action in {"change", "preview"}:
+        if req.action == "read" and any(w in text for w in ("支持", "功能", "介绍", "怎么", "如何")):
+            data = await call("get_plan_catalog" if any(w in text for w in ("starter", "growth", "套餐")) else "get_entitlements")
+            answer = "产品规则见下方引用；当前目录或权益：" + json.dumps(data, ensure_ascii=False)
+        elif req.domain == "billing" and req.action in {"change", "preview"}:
             target = "growth_v1" if "growth" in text else "starter_v1" if "starter" in text else None
             if not target:
                 return "请明确目标套餐 Starter 或 Growth；首版只支持下周期生效。", calls
