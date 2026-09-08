@@ -32,6 +32,7 @@ class SaaSTest(unittest.TestCase):
         self.s.confirm(self.owner, op)
         receipt = self.s.apply(self.owner, op)
         self.assertEqual(receipt, self.s.apply(self.owner, op))
+        self.assertEqual(receipt, self.s.confirm(self.owner, op))
         sub = self.s.read(self.owner, "subscription")["data"]
         self.assertEqual((sub["plan_id"], sub["scheduled_plan_id"]), ("starter_v1", "growth_v1"))
         with self.s.tx() as db:

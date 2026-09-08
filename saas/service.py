@@ -171,6 +171,9 @@ class SaaSService:
     def confirm(self, actor, op):
         with self.tx() as db:
             row = self._operation(db, actor, op)
+            self._authorize(db, actor, "subscription.change")
+            if row["kind"] == "subscription" and row["receipt"]:
+                return json.loads(row["receipt"])
             self._validate_preview(db, actor, row)
             if row["status"] in {"prepared", "confirmed"}:
                 db.execute("UPDATE operations SET status='confirmed' WHERE id=?", (op,))

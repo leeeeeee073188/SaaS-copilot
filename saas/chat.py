@@ -18,8 +18,10 @@ class ChatService:
 
     async def handle(self, actor, message, conv_id=None):
         started = time.monotonic()
-        async with self._limit:
-            return await asyncio.wait_for(self._handle(actor, message, conv_id, started), timeout=90)
+        async def admitted():
+            async with self._limit:
+                return await self._handle(actor, message, conv_id, started)
+        return await asyncio.wait_for(admitted(), timeout=90)
 
     async def _handle(self, actor, message, conv_id, started):
         await asyncio.to_thread(self.service.read, actor, "entitlements")

@@ -8,7 +8,8 @@ from saas.fixtures import PLANS, POLICY_VERSION, scenarios
 
 class LexicalEmbedding:
     # No model download: reproducible test retrieval, not a semantic-model benchmark.
-    def name(self):
+    @staticmethod
+    def name():
         return "flowforge-lexical-v1"
 
     def get_config(self):
@@ -16,6 +17,12 @@ class LexicalEmbedding:
 
     def is_legacy(self):
         return False
+
+    def default_space(self):
+        return "cosine"
+
+    def supported_spaces(self):
+        return ["cosine", "l2", "ip"]
 
     @staticmethod
     def build_from_config(config):

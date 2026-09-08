@@ -1,5 +1,6 @@
 <template>
-  <main class="app-shell">
+  <DemoWorkspace v-if="demoMode" :base-url="currentBackend.baseUrl" :engine="demoEngine" />
+  <main v-else class="app-shell">
     <aside class="sidebar">
       <section class="brand">
         <div class="brand-mark">EM</div>
@@ -136,6 +137,7 @@
 </template>
 
 <script setup>
+import DemoWorkspace from './DemoWorkspace.vue'
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import {
   addKnowledge,
@@ -152,6 +154,8 @@ import {
 } from './lib/backends'
 
 const settings = reactive(createInitialSettings())
+const demoMode = ref(false)
+const demoEngine = ref('')
 const messages = ref([])
 const draft = ref('')
 const busy = ref(false)
@@ -176,9 +180,9 @@ watch(
   () => persist()
 )
 
-onMounted(() => {
-  checkHealth()
-  loadStats()
+onMounted(async () => {
+  await checkHealth()
+  if (!demoMode.value) loadStats()
 })
 
 function persist() {
@@ -229,6 +233,8 @@ async function sendMessage() {
 async function checkHealth() {
   try {
     const data = await requestHealth(settings.backend, settings)
+    demoMode.value = Boolean(data.demo)
+    demoEngine.value = data.engine || ''
     healthOk.value = data.status === 'ok'
     healthLabel.value = data.status || 'ok'
     statusText.value = JSON.stringify(data, null, 2)
