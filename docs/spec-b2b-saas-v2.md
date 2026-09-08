@@ -1,0 +1,61 @@
+# EchoMind B2B SaaS V2 implementation spec
+
+Branch: `feat/b2b-saas-agent-v2`. Product decisions: ADR 0002 and the V2 design.
+This local spec is explicitly requested by the user; no remote issue publishing is required.
+
+## Scope and order
+
+Each module must pass its checks before the next module starts. Runtime code stays small;
+comments explain non-obvious constraints. Real payments, outbound invitations, production
+integrations, framework migration and immediate prorated upgrades remain out of scope.
+
+1. **Business sandbox**: SQLite organizations, memberships, two plans, three scenarios,
+   subscription/invoice/usage/request data; server-issued demo sessions; org permissions;
+   subscription preview/confirmation/scheduling and developer invitation with transactional
+   idempotency, audit and operation receipts. Demo clock advances scheduled changes.
+   Check permissions, cross-org IDs, stale previews, repeated writes, seat limits and clock.
+2. **Knowledge fixtures**: versioned synthetic product documents and organization snapshots,
+   persisted in a dedicated Chroma collection; stable chunk IDs, org/version filtering,
+   deterministic re-import and source metadata. Check real DB count and retrieval plus isolation.
+   Fixture source is tracked; generated SQLite/Chroma files remain ignored.
+3. **Agent integration**: registered business tools with permissions/effects, domain/action
+   routing, trusted actor context, no model-supplied confirmation; shared chat service and
+   org-scoped memory, bounded collaboration and full-request timing. Repair memory compression
+   order/failed archival; tool failures never fabricate success. Check mocked tool-use and API.
+4. **Product UI**: demo session/org selection, four business panels, conversation, citations,
+   concrete preview confirmation and state refresh; preserve legacy analysis mode outside demo.
+   Check production build and local API/UI flow.
+5. **Evaluation and delivery**: repeatable isolated state assertions and trace report; documented
+   seed/import/run commands, full regression suite. Live model calls require configured provider;
+   deterministic tests must not depend on paid model output. Record exactly which checks ran.
+
+## Business contract
+
+- Demo mode is explicit (`ECHOMIND_DEMO=1`); production mode does not expose demo login/control.
+- Authorization derives from a server session token and org membership, never body user_id/role.
+- owner: all operations; admin: integration read/member invite; billing_admin: billing read/change;
+  developer: integration read; all members: public knowledge, entitlements/usage/member summary.
+- Tools expose read/prepare/write metadata; execution rechecks permissions. Skills grant no rights.
+- A subscription preview binds actor/org/parameters/resource version/policy version/expiry.
+  Confirm via authenticated operation endpoint; submit uses that exact preview. Current plan
+  remains unchanged until period end; receipt says scheduled. Confirmation cannot change arguments.
+- Invitation is developer-only, local pending state, reserves one seat. Explicit exact invitation
+  requests may execute; otherwise the agent asks for missing recipient/role. No real email is sent.
+- State mutation, success receipt and audit commit together; same key+parameters returns original
+  receipt; changed parameters conflict. Queries and operations always filter org. Clock controls
+  are unavailable to Agent tools and protected by a separate demo control credential.
+- Public docs + authorized org docs may be retrieved; current billing/member facts come from tools.
+  Memory never grants authorization or supplies authoritative current billing state.
+
+## API additions
+
+`/saas/demo/login`, `/saas/session`, `/saas/plans`, `/saas/me/{entitlements,usage,subscription,invoices,members}`,
+`/saas/integrations/{id}/requests`, `/saas/subscription/change-previews`,
+`/saas/operations/{id}/confirm`, `/saas/subscription/changes`, `/saas/invitations`,
+`/saas/operations/{id}`; separately protected `/saas/demo/advance-clock`.
+
+## Completion evidence
+
+Module results and deviations are recorded in `docs/implementation-v2.md`. Tests must verify
+database state and prohibited side effects, not just success text. Chroma must actually contain
+the synthetic documents and return source IDs. No claimed live-model quality scores without a run.
