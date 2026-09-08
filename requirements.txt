@@ -11,7 +11,10 @@ python-multipart==0.0.12    # FastAPI 文件上传支持
 
 # ── 数据存储 ──────────────────────────────────────────────────────────────────
 redis==5.2.1
-chromadb==0.5.23           # 向量数据库（长期记忆）
+chromadb==0.5.23; sys_platform != 'win32'
+chromadb==1.0.20; sys_platform == 'win32'  # Windows wheel; demo uses its own data directory
+numpy<2                   # Keep the older Linux Chroma dependency compatible
+posthog<6                 # Chroma telemetry API compatibility
 
 # ── 监控 ──────────────────────────────────────────────────────────────────────
 prometheus-client==0.21.1
