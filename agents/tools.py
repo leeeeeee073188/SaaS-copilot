@@ -22,6 +22,9 @@ class AgentToolSpec:
     description: str
     input_schema: Dict[str, Any]
     handler: AgentToolHandler
+    domain: str = "analysis"
+    effect: str = "read"
+    permission: str = ""
 
 
 def make_tool(
@@ -370,4 +373,3 @@ def escalation_tools() -> Dict[str, AgentToolSpec]:
             required=["reason"],
         )
     }
-

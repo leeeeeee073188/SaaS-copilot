@@ -105,6 +105,7 @@ class MemoryManager:
         # 同一用户的画像更新串行执行，避免并发 LLM 调用以完成顺序覆盖画像。
         # 不同用户使用不同锁，仍可并发更新。
         self._profile_locks: Dict[str, asyncio.Lock] = {}
+        self._conversation_locks: Dict[str, asyncio.Lock] = {}
 
         # ChromaDB：优先连接独立服务（docker compose 模式），连不上则降级为本地嵌入式
         try:
@@ -131,6 +132,14 @@ class MemoryManager:
     # ── 写入 ──────────────────────────────────────────────────────────────────
 
     async def add_message(
+        self, user_id: str, conv_id: str, role: MsgRole, content: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        key = self._wm_key(user_id, conv_id)
+        async with self._conversation_locks.setdefault(key, asyncio.Lock()):
+            await self._add_message_locked(user_id, conv_id, role, content, metadata)
+
+    async def _add_message_locked(
         self,
         user_id: str,
         conv_id: str,
@@ -374,7 +383,7 @@ confidence 必须是 0 到 1 之间的数字；evidence 应说明最近对话中
           3. 旧消息存入情景记忆（ChromaDB）供跨会话检索
           4. 工作记忆只保留最近 5 条
         """
-        messages = await self._get_working_memory(user_id, conv_id)
+        messages = await self._get_working_memory(user_id, conv_id, limit=None)
         if len(messages) < self.COMPRESS_AT:
             return
 
@@ -391,33 +400,32 @@ confidence 必须是 0 到 1 之间的数字；evidence 应说明最近对话中
             )
             summary = self._safe_text(extract_text_content(resp.content)).strip()
         except Exception:
-            summary = f"对话包含 {len(to_compress)} 条消息（摘要生成失败）"
+            return  # Keep raw history when summarization fails.
+
+        if not summary:
+            return
 
         # 存摘要到 Redis
         skey = self._summary_key(user_id, conv_id)
         old_summary = await self._redis.get(skey) or ""
-        new_summary = self._safe_text(f"{old_summary}\n{summary}").strip()
-        await self._redis.setex(skey, 86400, new_summary)
+        new_summary = self._safe_text(f"{old_summary}\n{summary}").strip()[-3000:]
 
         # 旧消息存入情景记忆
-        await self._store_episodic(user_id, conv_id, text, summary)
+        if not await self._store_episodic(user_id, conv_id, text, summary):
+            return
+        await self._redis.setex(skey, 86400, new_summary)
 
         # 重置工作记忆为最近 5 条
         key = self._wm_key(user_id, conv_id)
-        await self._redis.delete(key)
-        for m in reversed(keep):
-            await self._redis.lpush(key, json.dumps({
-                "role": m.role.value, "content": m.content,
-                "ts": m.timestamp.isoformat(), "metadata": m.metadata,
-            }))
+        await self._redis.ltrim(key, 0, len(keep) - 1)
         await self._redis.expire(key, 86400)
         logger.info(f"工作记忆压缩完成: {user_id}/{conv_id}，摘要 {len(summary)} 字")
 
     # ── 内部辅助 ──────────────────────────────────────────────────────────────
 
-    async def _get_working_memory(self, user_id: str, conv_id: str) -> List[Message]:
+    async def _get_working_memory(self, user_id: str, conv_id: str, limit: Optional[int] = WORKING_MAX) -> List[Message]:
         key  = self._wm_key(user_id, conv_id)
-        raws = await self._redis.lrange(key, 0, self.WORKING_MAX - 1)
+        raws = await self._redis.lrange(key, 0, limit - 1 if limit is not None else -1)
         msgs = []
         for raw in reversed(raws):  # Redis lpush 最新在前，reversed 还原时序
             d = json.loads(raw)
@@ -448,7 +456,7 @@ confidence 必须是 0 到 1 之间的数字；evidence 应说明最近对话中
             logger.warning(f"情景记忆检索失败: {ex}")
             return []
 
-    async def _store_episodic(self, user_id: str, conv_id: str, text: str, summary: str) -> None:
+    async def _store_episodic(self, user_id: str, conv_id: str, text: str, summary: str) -> bool:
         """将压缩后的对话片段存入情景记忆。ChromaDB 内置 embedding，不依赖外部 API。"""
         try:
             user_id = self._safe_text(user_id)
@@ -464,8 +472,10 @@ confidence 必须是 0 到 1 之间的数字；evidence 应说明最近对话中
                 metadatas=[{"user_id": user_id, "conv_id": conv_id,
                             "ts": datetime.now().isoformat(), "full_text": self._safe_text(text[:500])}],
             )
+            return True
         except Exception as ex:
             logger.warning(f"存储情景记忆失败: {ex}")
+            return False
 
     async def _get_profile(self, user_id: str) -> Dict[str, Any]:
         """获取用户唯一画像；兼容旧的按会话画像并按时间选择最新记录。"""

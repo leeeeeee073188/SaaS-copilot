@@ -14,6 +14,13 @@ class LexicalEmbedding:
     def get_config(self):
         return {}
 
+    def is_legacy(self):
+        return False
+
+    @staticmethod
+    def build_from_config(config):
+        return LexicalEmbedding()
+
     def __call__(self, input):
         vectors = []
         for text in input:

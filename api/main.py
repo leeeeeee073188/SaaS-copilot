@@ -676,6 +676,11 @@ async def _cli():
     await mem.close()
 
 
+if os.getenv("ECHOMIND_DEMO") == "1":
+    from api.demo import create_demo_app
+    app = create_demo_app()
+
+
 if __name__ == "__main__":
     if "--cli" in sys.argv:
         asyncio.run(_cli())
