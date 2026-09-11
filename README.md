@@ -11,7 +11,7 @@ FlowForge 是有状态的模拟 SaaS 产品：所有业务操作仅修改本地�
 - 规则识别领域与动作；只读请求主辅并行，变更仅由主领域处理。
 - 每个 Agent 具有专属任务、工具范围和领域证据；结构化并行结果经过引用校验后汇总。
 - 服务端组织身份、工具鉴权、订阅预览与确认、幂等回执、事务审计。
-- Chroma 产品规则与组织快照；SQLite 工作记忆（可选 Redis）、Chroma 历史片段与显式偏好。
+- Chroma 产品规则与组织快照；Redis 工作记忆（24 小时 TTL）、Chroma 历史片段与显式偏好。
 - 持久请求轨迹、阶段耗时、工具结果、模型 token 用量、Prometheus 指标和服务记录页面。
 
 ## 本地启动
@@ -22,6 +22,7 @@ Python 3.12，Node.js 22。Windows 示例：
 python -m venv .venv
 .venv/Scripts/python.exe -m pip install -r requirements.txt
 Copy-Item .env.example .env
+docker compose up -d redis
 .venv/Scripts/python.exe -m uvicorn api.main:app --host 127.0.0.1 --port 8000
 ```
 
@@ -51,8 +52,8 @@ npm run dev
 ## Docker
 
 复制 `.env.example` 为 `.env` 后运行 `docker compose up --build -d`，前端 http://127.0.0.1:5174。
-仅包含当前后端与前端，业务和 Chroma 数据持久化在 `flowforge-data` 卷。
-默认不需要独立 Redis、Chroma 服务或 Prometheus 容器；可选 Redis 使用配置中的 URL。
+包含后端、前端与 Redis。业务和 Chroma 数据持久化在 `flowforge-data` 卷，Redis 使用独立卷和 AOF。
+工作记忆必须使用 Redis，连接失败不会降级到 SQLite；默认地址 `redis://127.0.0.1:6380/0`。
 外部 Prometheus 配置示例在 `config/prometheus.yml`，需单独挂载与后端一致的监控 token 文件。
 
 ## 代码与文档
@@ -75,3 +76,6 @@ npm run dev
 - [业务规范](docs/spec-b2b-saas-v2.md)
 
 `docs` 中早期研究与实施报告保留为历史依据，不代表当前代码仍包含旧模式。
+
+工作记忆切换及高并发方案见 [Redis 工作记忆与并发设计](docs/redis-working-memory.md)。
+已有 SQLite 会话可运行 `.venv/Scripts/python.exe -m saas.migrate_memory` 复制到 Redis，已有 Redis 会话不会被覆盖，旧表不删除。

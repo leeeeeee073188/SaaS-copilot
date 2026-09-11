@@ -45,7 +45,10 @@ async def evaluate_case(case, root, knowledge, orchestrator):
     actor = Actor(f"{case['org']}_{case['role']}", f"org_{case['org']}", case["role"])
     chat = ChatService(service, knowledge, memory, orchestrator)
     before = snapshot(service)
-    output = await chat.handle(actor, case["message"], case["id"])
+    try:
+        output = await chat.handle(actor, case["message"], case["id"])
+    finally:
+        await memory.close()
     own = before[actor.org_id]
     task, role = case["task"], case["role"]
     require(output["citations"], "Missing evidence")

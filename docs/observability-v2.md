@@ -76,7 +76,7 @@ ChatService 内部使用 ContextVar 关联单次请求，支持异步并发和�
 | 接口 | 权限 | 返回内容 |
 |---|---|---|
 | GET /health | 无需登录 | 应用存活及配置，不检测模型可用性 |
-| GET /ready | 无需登录 | 业务 SQLite、轨迹 SQLite、Chroma 和可选 Redis 的访问检查；失败为 503 |
+| GET /ready | 无需登录 | 业务 SQLite、轨迹 SQLite、Chroma 和 Redis 的访问检查；失败为 503 |
 | GET /monitor | 当前演示会话 | 最近 24 小时保留样本的摘要、分位数、工具结果与告警 |
 | GET /trace/tools?limit=20 | 当前演示会话 | 默认 20 条、最多 100 条，最新在前 |
 | GET /trace/tools/{request_id} | 当前演示会话 | 单条记录；无权限与不存在均为 404 |

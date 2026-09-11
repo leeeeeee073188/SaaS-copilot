@@ -22,6 +22,8 @@ integrations, framework migration and immediate prorated upgrades remain out of 
    routing, trusted actor context, no model-supplied confirmation; shared chat service and
    org-scoped memory, bounded collaboration and full-request timing. Repair memory compression
    order/failed archival; tool failures never fabricate success. Check mocked tool-use and API.
+   2026-09-11: working memory uses Redis exclusively with 24-hour TTL and optimistic concurrency
+   checks; SQLite remains the business/trace store. See `docs/redis-working-memory.md`.
 4. **Product UI**: demo session/org selection, four business panels, conversation, citations,
    concrete preview confirmation and state refresh; preserve legacy analysis mode outside demo.
    Check production build and local API/UI flow.

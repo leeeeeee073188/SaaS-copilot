@@ -42,8 +42,11 @@ def create_demo_app(path=None, orchestrator=None):
 
     @asynccontextmanager
     async def lifespan(app):
-        yield
-        await memory.close()
+        try:
+            await memory.redis.ping()
+            yield
+        finally:
+            await memory.close()
 
     app = FastAPI(title="FlowForge + EchoMind sandbox", lifespan=lifespan)
     app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -74,7 +77,7 @@ def create_demo_app(path=None, orchestrator=None):
     @app.get("/health")
     def health():
         return {"status": "ok", "demo": True, "engine": "llm" if orchestrator else "deterministic_demo",
-                "memory_backend": "redis" if memory.redis else "sqlite", "embedding": knowledge.embedding}
+                "memory_backend": "redis", "embedding": knowledge.embedding}
 
     @app.post("/chat")
     async def chat(body: ChatInput, request: Request, authorization: str = Header(default="")):

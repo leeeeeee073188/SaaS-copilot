@@ -29,7 +29,7 @@ Triage 对应 product，Support 对应 integration，Success 对应 billing/acco
 
 ## 4. 记忆
 
-`saas/memory.py` 按组织、用户、会话隔离工作历史，默认 SQLite，可选 Redis TTL 24 小时。
+`saas/memory.py` 按组织、用户、会话隔离工作历史，固定使用 Redis，TTL 24 小时；SQLite 仅保存业务状态及轨迹。
 历史超过阈值后先归档再裁剪；Chroma 保存有界历史片段与显式偏好。
 历史片段不是模型摘要，画像也不是授权依据。请求读取记忆后识别意图，路由后再分配领域证据。
 多个 Agent 共享对话背景以理解指代，不宣称每个 Agent 有独立长期记忆。
@@ -53,7 +53,7 @@ Triage 对应 product，Support 对应 integration，Success 对应 billing/acco
 `monitor/business_monitor.py` 持久化 request_id、阶段耗时、工具结果、模型用量与操作 ID。
 包括各专业 Agent 的执行阶段；请求记录按组织及用户隔离。
 区分业务拒绝、技术失败、超时和降级；指标不使用用户、组织或请求 ID 作为标签。
-`/metrics` 需独立凭证；`/ready` 检查 SQLite、Chroma 和可选 Redis。
+`/metrics` 需独立凭证；`/ready` 检查 SQLite、Chroma 和 Redis。
 尚无分布式追踪、外部告警投递或 token 价格核算。
 
 ## 8. 测评
