@@ -1,9 +1,12 @@
 """Adapters attach trusted actors and retain structured evidence and receipts."""
 import asyncio
 import re
+import time
 from dataclasses import replace
 from agents.tools import make_tool
 from saas.service import BusinessError, PERMISSIONS
+from monitor.business_monitor import record_tool
+from saas.specialization import relevant_evidence
 
 
 def business_tools(service, knowledge, actor, decision):
@@ -20,20 +23,33 @@ def business_tools(service, knowledge, actor, decision):
             return
 
         async def handler(req, args):
+            started, status = time.monotonic(), "error"
             try:
                 await asyncio.to_thread(service.read, actor, "entitlements")
                 data = await asyncio.wait_for(asyncio.to_thread(fn, req, args), timeout=10)
                 if name == "search_product_knowledge":
+                    if req.specialist_task:
+                        data["results"] = [item for item in data["results"]
+                                           if relevant_evidence(item, req.domains, req.business_tools)]
                     req.evidence.extend(item for item in data["results"] if item not in req.evidence)
                 elif effect in {"prepare", "write"}:
                     req.operations.append(data)
                 else:
+                    data = {**data, "source_id": name}
                     req.evidence.append({"source_id": name, "content": data, "org_id": actor.org_id})
+                status = "ok"
                 return {**data, "success": True}
             except BusinessError as ex:
+                status = ex.code
                 return {"success": False, "status": ex.code, "error": str(ex)}
             except asyncio.TimeoutError:
-                return {"success": False, "status": "unknown" if effect == "write" else "timeout", "error": "超时；写操作请先查询回执"}
+                status = "unknown" if effect == "write" else "timeout"
+                return {"success": False, "status": status, "error": "超时；写操作请先查询回执"}
+            except asyncio.CancelledError:
+                status = "unknown" if effect == "write" else "cancelled"
+                raise
+            finally:
+                record_tool(name, effect, status, started)
 
         spec = make_tool(name, description, properties, handler, required)
         tools[name] = replace(spec, domain=domain, effect=effect, permission=permission)

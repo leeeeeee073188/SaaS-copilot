@@ -13,9 +13,9 @@ domain; runtime implementation status is recorded in the project plans.
 **EchoMind**: The conversational service that explains product capabilities,
 retrieves evidence, and uses registered business tools on a user's behalf.
 
-**FlowForge Cloud**: A fictional B2B SaaS product for configuring data
-integrations, observing synchronization jobs, and managing organizational
-subscriptions and access.
+**FlowForge Cloud**: A fictional API and Webhook integration and operations
+product for growing businesses connecting their business systems. Its customer
+organization members manage integrations, usage, subscriptions and collaboration.
 
 **Organization**: A customer enterprise that owns its subscriptions, members,
 projects and integration resources. It is the customer data isolation scope.
@@ -29,13 +29,25 @@ _Avoid_: Using account to mean both an organization and an individual user.
 assist a customer organization; support employment alone does not grant access
 to all organizations or authority to change their subscriptions.
 
-**Customer project**: A delivery and adoption initiative within an organization,
-containing integration resources and an intended business outcome.
+**Customer project**: An organization-owned workspace grouping integrations
+around a business outcome, such as order fulfillment notifications.
 
 ### Product Usage
 
 **Integration**: A project's configured connection to a source or destination,
 such as an API or Webhook endpoint.
+
+**Environment**: The testing or production context of an integration and its
+credentials; credentials belonging to one environment do not imply access to another.
+
+**Business event**: A business fact exchanged between systems, such as an order
+being created. Its identity is distinct from any individual delivery attempt.
+
+**Request record**: An observation of a request's technical outcome within an
+integration; a successful request alone does not establish downstream business completion.
+
+**Delivery attempt**: One attempt to deliver a business event to its destination;
+multiple attempts may refer to the same event.
 
 **Sync run**: One recorded execution of a configured data synchronization task.
 

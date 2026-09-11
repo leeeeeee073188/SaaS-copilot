@@ -56,6 +56,20 @@ integrations, framework migration and immediate prorated upgrades remain out of 
 
 ## Completion evidence
 
+### Specialist execution (2026-09-10)
+
+- Keep primary/supporting routing and parallel read/explain requests. Split work by domain:
+  Triage owns product consultation, Support owns integration diagnostics, Success owns billing/account.
+- Intersect authorized request tools with each specialist's domain and common read tools.
+  Assign mutation requests only to their primary domain. No parallel writes or broader fallback tools.
+- Preserve shared conversational memory for references, but filter knowledge evidence by domain;
+  each invocation accumulates evidence/receipts separately and merges them back even on failure.
+- Parallel specialists return validated summary/evidence_ids/missing/next_steps; unknown sources or
+  invalid shapes fail that specialist. Composer addresses SaaS users and preserves incomplete work.
+- Verify distinct real tool execution, denied tools, receipt propagation, request isolation,
+  partial failure and deterministic composition fallback with an injected fake provider.
+  Offline state evaluation is regression evidence, not a measurement of live multi-agent quality.
+
 Module results and deviations are recorded in `docs/implementation-v2.md`. Tests must verify
 database state and prohibited side effects, not just success text. Chroma must actually contain
 the synthetic documents and return source IDs. No claimed live-model quality scores without a run.

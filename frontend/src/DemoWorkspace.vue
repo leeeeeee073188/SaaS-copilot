@@ -39,6 +39,23 @@
           <div class="demo-controls"><input v-model="email" type="email" placeholder="colleague@aurora.example" /><button :disabled="busy || !email.trim()" @click="invite">邀请 developer</button></div>
           <small>只创建本地邀请，不发送邮件；待接受邀请占用席位。</small>
         </article>
+        <article v-if="active === 'monitor'" class="demo-card">
+          <h2>我的服务记录</h2><p class="demo-muted">当前企业及本人 · 最近 24 小时保留的样本；处理完成不代表问题已解决。</p>
+          <button :disabled="busy" @click="loadMonitor">刷新记录</button>
+          <template v-if="monitorData">
+            <p>请求 {{ monitorData.sample_count }} 次 · 技术失败 {{ monitorData.technical_error_rate === null ? '暂无样本' : `${(monitorData.technical_error_rate * 100).toFixed(1)}%` }}</p>
+            <p>处理耗时 P50 {{ monitorData.latency_ms.p50 ?? '—' }} ms · P95 {{ monitorData.latency_ms.p95 ?? '—' }} ms</p>
+            <p v-for="alert in monitorData.alerts" :key="alert.code" class="demo-error">{{ alert.message }}</p>
+          </template>
+          <details v-for="trace in recentTraces" :key="trace.request_id" class="demo-request">
+            <summary>{{ statusLabels[trace.status] || trace.status }} · {{ trace.domain }} · {{ trace.latency_ms }} ms</summary>
+            <small>{{ new Date(trace.started_at * 1000).toLocaleString() }} · {{ trace.request_id }}</small>
+            <div v-for="(stage, index) in trace.spans" :key="index">{{ stage.name }}：{{ stage.latency_ms }} ms · {{ stage.status }}</div>
+            <div v-for="(tool, index) in trace.tool_traces" :key="`tool-${index}`">{{ tool.tool_name }}：{{ tool.status }} · {{ tool.latency_ms }} ms</div>
+            <p v-if="trace.operation_ids.length">关联操作：{{ trace.operation_ids.join(', ') }}</p>
+          </details>
+          <p v-if="monitorData && !recentTraces.length">暂无记录，发送一条咨询后刷新查看。</p>
+        </article>
         <article v-for="op in operations" :key="op.operation_id" class="demo-card operation-card">
           <h3>业务操作 · {{ op.status }}</h3>
           <template v-if="op.preview"><p>{{ op.preview.current_plan }} → {{ op.preview.target_plan }}</p><p>本周期增量 ¥{{ op.preview.current_period_charge_minor / 100 }}；下周期 ¥{{ op.preview.next_period_price_minor / 100 }}</p><p>生效时间 {{ op.preview.effective_at }}</p><small>预览有效至 {{ op.preview.expires_at }}</small>
@@ -62,23 +79,26 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 const props = defineProps({ baseUrl: { type: String, required: true }, engine: String })
 const org = ref('aurora'), role = ref('owner'), session = ref(null), token = ref(''), busy = ref(false), error = ref('')
 const active = ref('overview'), target = ref('growth_v1'), email = ref(''), draft = ref(''), conv = ref('')
 const data = reactive({}), denied = reactive({}), requests = ref([]), operations = ref([]), messages = ref([])
-const tabs = [{ id: 'overview', label: '概览' }, { id: 'integration', label: 'API 集成' }, { id: 'billing', label: '订阅账单' }, { id: 'account', label: '企业账户' }]
+const monitorData = ref(null), recentTraces = ref([])
+const statusLabels = { ok: '处理完成', business_rejected: '业务规则拒绝', degraded: '处理降级', error: '技术失败', timeout: '处理超时', cancelled: '请求取消' }
+const tabs = [{ id: 'overview', label: '概览' }, { id: 'integration', label: 'API 集成' }, { id: 'billing', label: '订阅账单' }, { id: 'account', label: '企业账户' }, { id: 'monitor', label: '服务记录' }]
 const examples = ['Starter 支持 Webhook 吗', '查询 int_aurora 的 401', '下周期升级到 Growth', '邀请 new@aurora.example 为 developer']
 async function api(path, body) {
   const response = await fetch(props.baseUrl + path, { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token.value}` }, ...(body ? { body: JSON.stringify(body) } : {}) })
   const result = await response.json()
-  if (!response.ok) throw new Error(typeof result.detail === 'string' ? result.detail : result.detail?.message || JSON.stringify(result.detail))
+  if (!response.ok) throw new Error(`${typeof result.detail === 'string' ? result.detail : result.detail?.message || JSON.stringify(result.detail)}（请求 ${response.headers.get('X-Request-ID') || '未返回编号'}）`)
   return result
 }
 async function run(fn) { busy.value = true; error.value = ''; try { await fn() } catch (e) { error.value = e.message } finally { busy.value = false } }
 async function login() { await run(async () => {
   const result = await api('/saas/demo/login', { user_id: `${org.value}_${role.value}`, org_id: `org_${org.value}` })
   token.value = result.token; session.value = result; conv.value = ''; messages.value = []; operations.value = []; requests.value = []
+  monitorData.value = null; recentTraces.value = []; active.value = 'overview'
   Object.keys(data).forEach(key => delete data[key]); await refresh()
 }) }
 async function refresh() {
@@ -107,6 +127,11 @@ async function send() { await run(async () => {
   messages.value.push({ role: 'assistant', content: result.response, citations: result.citations, meta: `${result.domain}/${result.action} · ${result.latency_ms} ms · ${(result.tools_used || []).join(', ')}` })
   result.operations.forEach(remember); await refresh()
 }) }
+async function loadMonitor() { await run(async () => {
+  const [summary, traces] = await Promise.all([api('/monitor'), api('/trace/tools')])
+  monitorData.value = summary; recentTraces.value = traces.traces
+}) }
+watch(active, value => { if (value === 'monitor') loadMonitor() })
 onMounted(login)
 </script>
 

@@ -130,3 +130,15 @@ A defensible resume statement: implemented a tool-enabled B2B SaaS service agent
 sandbox covering four domains, with organization-scoped retrieval/memory, confirmed subscription
 changes, idempotent writes and a 60-case state regression matrix. Add model quality, cost and
 latency improvements only after a measured baseline and comparison run.
+
+## Specialist execution update — 2026-09-10
+
+Implemented domain tasks, tool/evidence narrowing, independent invocation state, validated
+parallel findings and customer-facing composition. Partial failures remain visible; V2 no longer
+falls back to a different business role. See [specialization-v2.md](specialization-v2.md).
+
+Validation: 47 tests passed, including 7 specialization tests with an injected provider and real
+sandbox read tools. The offline state evaluator passed 60/60 cases. Logs are in
+`data/flowforge/specialization-tests.log` and `data/eval/specialization-business-report.json`.
+The report records the base Git revision; changes were uncommitted during this run. No live-model
+quality improvement is claimed. Offline demo still bypasses multi-agent execution.
