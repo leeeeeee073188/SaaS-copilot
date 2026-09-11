@@ -10,7 +10,7 @@
 | Success（account） | 成员、席位、角色与邀请 | list_members、invite_member |
 
 Success 同时收到 billing/account 只读请求时一次处理两个子任务，不为每个领域新增类。
-原有 Delivery/Renewal 等角色仅用于原模式，未作为 V2 新增能力宣传。
+原有 Delivery/Renewal/Escalation 及内部分析模式已于 2026-09-11 删除，运行时只保留以上三类 Agent。
 
 公共工具为 search_product_knowledge、get_plan_catalog、get_entitlements、get_operation。
 最终工具是“用户权限及请求动作允许的工具”与“角色任务范围”的交集；角色配置不授予权限。

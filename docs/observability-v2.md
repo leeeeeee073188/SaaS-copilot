@@ -157,4 +157,4 @@ sum(rate(flowforge_chat_requests_total[5m]))
 .venv/Scripts/python -m evaluation.business_evaluator --output data/eval/observability-business-report.json
 ```
 
-当前仍是单进程轻量观测方案：没有 OpenTelemetry 导出、分布式父子调用传播、独立 Agent 级 span、外部告警投递、故障恢复工作流或完整 token 成本结算。监控接口也不能证明回答事实正确，回答质量和业务任务完成仍需独立评测。
+当前仍是单进程轻量观测方案：没有 OpenTelemetry 导出、分布式父子调用传播、外部告警投递、故障恢复工作流或完整 token 成本结算。监控接口也不能证明回答事实正确，回答质量和业务任务完成仍需独立评测。

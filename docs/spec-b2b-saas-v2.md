@@ -31,7 +31,9 @@ integrations, framework migration and immediate prorated upgrades remain out of 
 
 ## Business contract
 
-- Demo mode is explicit (`ECHOMIND_DEMO=1`); production mode does not expose demo login/control.
+- This branch runs only the synthetic FlowForge workspace (2026-09-11 scope update).
+  `ECHOMIND_DEMO_LLM` selects deterministic/model execution; no internal-analysis mode remains.
+  Demo identity routes are sandbox authentication, not production identity management.
 - Authorization derives from a server session token and org membership, never body user_id/role.
 - owner: all operations; admin: integration read/member invite; billing_admin: billing read/change;
   developer: integration read; all members: public knowledge, entitlements/usage/member summary.

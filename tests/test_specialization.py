@@ -12,7 +12,6 @@ from agents.agent_orchestrator import (
     AgentOrchestrator, AgentType, Request, ResponseComposer, SupportAgent, SuccessAgent, TriageAgent,
 )
 from agents.tools import make_tool
-from core.intent_recognizer import IntentCategory
 from saas.specialization import parse_findings, specialize
 from saas.agent_tools import business_tools
 from saas.service import Actor, SaaSService
@@ -40,7 +39,7 @@ def request(action="read"):
         tools[name] = replace(make_tool(name, name, {"source": {"type": "string"}}, handler), domain=domain, effect=effect)
     evidence = [{"source_id": f"ff-{domain}-01", "content": domain} for domain in ("integration", "billing", "product")]
     return Request("API 429 是否套餐不够，升级后能解决吗", "u", "c", domain="integration",
-                   domains=["integration", "billing"], action=action, intent=IntentCategory.QUERY,
+                   domains=["integration", "billing"], action=action,
                    context=json.dumps({"memory": "请简洁回答", "evidence": evidence}),
                    business_tools=tools, evidence=evidence)
 

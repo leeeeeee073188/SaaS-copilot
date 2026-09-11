@@ -6,6 +6,11 @@ Accepted product direction, 2026-09-08. The scoped MVP is implemented;
 see [implementation record](../implementation-v2.md) for verified capabilities and remaining extensions.
 Supersedes [ADR 0001](./0001-internal-saas-operations-domain.md).
 
+2026-09-11 amendment: the user requested standalone development of the current customer-facing
+branch and deletion of unrelated internal-analysis code. The former retention of delivery,
+adoption and renewal analysis below is historical. Only product, integration, billing and account
+domains remain; there is no alternate internal-analysis runtime. See [cleanup record](../standalone-cleanup.md).
+
 ## Decision
 
 EchoMind will support product consultation, API integration support,

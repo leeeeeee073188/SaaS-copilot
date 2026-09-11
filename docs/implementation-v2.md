@@ -2,6 +2,10 @@
 
 Branch: `feat/b2b-saas-agent-v2`. Scope: `docs/spec-b2b-saas-v2.md`.
 
+2026-09-11: this branch now runs only the customer-facing workspace. Historical module records
+below describe earlier deliveries. Current startup and cleanup scope: [README](../README.md),
+[standalone cleanup](standalone-cleanup.md). `ECHOMIND_DEMO` no longer selects a runtime.
+
 Completed and verified on Windows / Python 3.12 on 2026-09-09 (Asia/Shanghai):
 34 regression tests passed; 60/60 state-evaluation cases passed; Vite production build passed;
 browser business flows passed; 34 Chroma knowledge chunks persisted and re-import verified.

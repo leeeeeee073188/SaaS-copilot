@@ -1,4 +1,4 @@
-"""Explicit sandbox entrypoint with the existing Agent runtime as an option."""
+"""Application factory for the standalone SaaS support workspace."""
 import asyncio
 import os
 import secrets

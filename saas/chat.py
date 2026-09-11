@@ -6,7 +6,6 @@ import time
 import uuid
 from agents.agent_orchestrator import Request
 from core.business_intent import classify_business
-from core.intent_recognizer import IntentCategory, UrgencyLevel
 from saas.agent_tools import business_tools
 from saas.service import BusinessError
 from monitor.business_monitor import BusinessMonitor, Trace, current_trace, span, record_tool
@@ -70,7 +69,6 @@ class ChatService:
         req = Request(message=message, user_id=actor.user_id, conv_id=conv_id, history=history, actor=actor,
                       request_id=trace.request_id,
                       context=json.dumps({"memory": context, "evidence": evidence}, ensure_ascii=False),
-                      intent=IntentCategory.QUERY, intent_group=decision["domain"], urgency=UrgencyLevel.MEDIUM,
                       evidence=evidence, **decision)
         req.business_tools = business_tools(self.service, self.knowledge, actor, decision)
         with span("agent"):
