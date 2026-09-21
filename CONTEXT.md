@@ -1,6 +1,6 @@
-# EchoMind and FlowForge Cloud Domain Context
+# SaaS Copilot and FlowForge Cloud Domain Context
 
-EchoMind is a tool-enabled B2B SaaS service agent for product consultation,
+SaaS Copilot is a tool-enabled B2B SaaS service agent for product consultation,
 API integration support, subscription and billing management, and enterprise
 account management. FlowForge Cloud is the fictional data integration SaaS
 whose business capabilities it serves. These definitions describe the target
@@ -10,7 +10,7 @@ domain; runtime implementation status is recorded in the project plans.
 
 ### Product and Customers
 
-**EchoMind**: The conversational service that explains product capabilities,
+**SaaS Copilot**: The conversational service that explains product capabilities,
 retrieves evidence, and uses registered business tools on a user's behalf.
 
 **FlowForge Cloud**: A fictional API and Webhook integration and operations

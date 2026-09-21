@@ -1,4 +1,8 @@
-# EchoMind × FlowForge Cloud
+# SaaS Copilot × FlowForge Cloud
+
+项目展示名统一为 **SaaS Copilot**，技术标识使用 `saas-copilot`，配置前缀使用 `SAAS_COPILOT_`。
+升级旧部署时需同步修改环境变量键名；工作目录、Git 远程地址和已有数据目录无需迁移。
+Compose 后端服务名现为 `saas-copilot`，前端代理和监控目标已同步更新。
 
 面向使用 SaaS 产品的企业用户，提供产品咨询、API 对接支持、订阅账单和企业账户管理。
 FlowForge 是有状态的模拟 SaaS 产品：所有业务操作仅修改本地数据，不产生真实扣款或邮件。
@@ -35,8 +39,8 @@ npm run dev
 ```
 
 打开 http://127.0.0.1:5173，选择演示组织和角色。首次启动自动导入 34 条 Chroma 模拟文档。
-默认 `ECHOMIND_DEMO_LLM=0` 为确定性演示；配置模型凭证并设为 `1` 后启用真实 Agent。
-不再需要 `ECHOMIND_DEMO` 模式开关；保留的 `ECHOMIND_DEMO_*` 配置用于模拟产品和模型选择。
+默认 `SAAS_COPILOT_DEMO_LLM=0` 为确定性演示；配置模型凭证并设为 `1` 后启用真实 Agent。
+不再需要 `SAAS_COPILOT_DEMO` 模式开关；保留的 `SAAS_COPILOT_DEMO_*` 配置用于模拟产品和模型选择。
 
 ## 验证
 

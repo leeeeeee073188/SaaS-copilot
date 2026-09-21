@@ -25,16 +25,16 @@ class ChatInput(BaseModel):
 
 
 def create_demo_app(path=None, orchestrator=None):
-    path = Path(path or os.getenv("ECHOMIND_DEMO_DATA", "data/flowforge"))
+    path = Path(path or os.getenv("SAAS_COPILOT_DEMO_DATA", "data/flowforge"))
     service = SaaSService(path / "flowforge.db")
-    knowledge = SandboxKnowledge(path / "chroma", os.getenv("ECHOMIND_DEMO_EMBEDDING", "lexical"))
+    knowledge = SandboxKnowledge(path / "chroma", os.getenv("SAAS_COPILOT_DEMO_EMBEDDING", "lexical"))
     knowledge.seed()
-    memory = SandboxMemory(service, knowledge.client, os.getenv("ECHOMIND_DEMO_REDIS_URL"))
-    if orchestrator is None and os.getenv("ECHOMIND_DEMO_LLM") == "1":
+    memory = SandboxMemory(service, knowledge.client, os.getenv("SAAS_COPILOT_DEMO_REDIS_URL"))
+    if orchestrator is None and os.getenv("SAAS_COPILOT_DEMO_LLM") == "1":
         from agents.agent_orchestrator import AgentOrchestrator
         key = os.getenv("ANTHROPIC_API_KEY")
         if not key:
-            raise RuntimeError("ECHOMIND_DEMO_LLM=1 requires ANTHROPIC_API_KEY")
+            raise RuntimeError("SAAS_COPILOT_DEMO_LLM=1 requires ANTHROPIC_API_KEY")
         orchestrator = AgentOrchestrator(api_key=key, base_url=os.getenv("ANTHROPIC_BASE_URL") or None,
                                          model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"))
     chat_service = ChatService(service, knowledge, memory, orchestrator)
@@ -48,7 +48,7 @@ def create_demo_app(path=None, orchestrator=None):
         finally:
             await memory.close()
 
-    app = FastAPI(title="FlowForge + EchoMind sandbox", lifespan=lifespan)
+    app = FastAPI(title="FlowForge + SaaS Copilot sandbox", lifespan=lifespan)
     app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
                        allow_methods=["GET", "POST"], allow_headers=["Authorization", "Content-Type"], expose_headers=["X-Request-ID"])
     app.include_router(build_router(service))
@@ -115,7 +115,7 @@ def create_demo_app(path=None, orchestrator=None):
 
     @app.get("/metrics")
     def metrics(authorization: str = Header(default="")):
-        expected = os.getenv("ECHOMIND_METRICS_TOKEN", "")
+        expected = os.getenv("SAAS_COPILOT_METRICS_TOKEN", "")
         if not expected or not secrets.compare_digest(authorization, "Bearer " + expected):
             raise HTTPException(403, "需要独立监控凭证")
         return Response(content=monitor.metrics(), media_type=CONTENT_TYPE_LATEST)

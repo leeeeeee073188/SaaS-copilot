@@ -18,7 +18,7 @@ def memory_namespace(path):
 class SandboxMemory:
     def __init__(self, service, chroma, redis_url=None):
         self.service = service
-        url = redis_url or os.getenv("ECHOMIND_DEMO_REDIS_URL") or "redis://127.0.0.1:6380/0"
+        url = redis_url or os.getenv("SAAS_COPILOT_DEMO_REDIS_URL") or "redis://127.0.0.1:6380/0"
         self.redis = from_url(url, decode_responses=True, max_connections=32,
                               socket_connect_timeout=2, socket_timeout=2)
         # A database-specific namespace isolates independent sandboxes and test runs.

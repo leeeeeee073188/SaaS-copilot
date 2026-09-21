@@ -1,4 +1,4 @@
-# Optional external Prometheus; mount a token file matching ECHOMIND_METRICS_TOKEN.
+# Optional external Prometheus; mount a token file matching SAAS_COPILOT_METRICS_TOKEN.
 global:
   scrape_interval: 15s
 scrape_configs:
@@ -8,4 +8,4 @@ scrape_configs:
       type: Bearer
       credentials_file: /etc/prometheus/flowforge-token
     static_configs:
-      - targets: ['echomind:8000']
+      - targets: ['saas-copilot:8000']

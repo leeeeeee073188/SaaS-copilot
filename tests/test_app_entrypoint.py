@@ -9,8 +9,8 @@ from fastapi.testclient import TestClient
 class EntrypointTests(unittest.TestCase):
     def test_default_entrypoint_login_chat_and_removed_routes(self):
         directory = tempfile.mkdtemp(prefix="ff-entrypoint-")
-        with patch.dict("os.environ", {"ECHOMIND_DEMO": "0", "ECHOMIND_DEMO_LLM": "0",
-                                      "ECHOMIND_DEMO_REDIS_URL": "", "ECHOMIND_DEMO_DATA": directory}):
+        with patch.dict("os.environ", {"SAAS_COPILOT_DEMO": "0", "SAAS_COPILOT_DEMO_LLM": "0",
+                                      "SAAS_COPILOT_DEMO_REDIS_URL": "", "SAAS_COPILOT_DEMO_DATA": directory}):
             module = importlib.import_module("api.main")
             with TestClient(module.app) as client:
                 self.assertEqual(client.get("/ready").status_code, 200)

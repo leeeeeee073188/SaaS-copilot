@@ -1,4 +1,4 @@
-# 0001: Position EchoMind as an Internal SaaS Operations Analysis Agent
+# 0001: Position SaaS Copilot as an Internal SaaS Operations Analysis Agent
 
 ## Status
 
@@ -11,7 +11,7 @@ runtime code may still reflect them until the new plan is implemented.
 
 ## Decision
 
-EchoMind will be presented as an internal question-answering and analysis
+SaaS Copilot will be presented as an internal question-answering and analysis
 agent for SaaS employees working in customer delivery, customer success,
 technical support, and renewal operations. The shared business background is
 the fictional data integration product FlowForge Cloud.

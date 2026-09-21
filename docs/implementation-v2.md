@@ -4,7 +4,7 @@ Branch: `feat/b2b-saas-agent-v2`. Scope: `docs/spec-b2b-saas-v2.md`.
 
 2026-09-11: this branch now runs only the customer-facing workspace. Historical module records
 below describe earlier deliveries. Current startup and cleanup scope: [README](../README.md),
-[standalone cleanup](standalone-cleanup.md). `ECHOMIND_DEMO` no longer selects a runtime.
+[standalone cleanup](standalone-cleanup.md). `SAAS_COPILOT_DEMO` no longer selects a runtime.
 
 Completed and verified on Windows / Python 3.12 on 2026-09-09 (Asia/Shanghai):
 34 regression tests passed; 60/60 state-evaluation cases passed; Vite production build passed;
@@ -82,8 +82,8 @@ py -3.12 -m venv .venv
 .venv/Scripts/python -m pip install -r requirements.txt
 $env:PYTHONUTF8='1'
 .venv/Scripts/python -m saas.seed --output data/flowforge
-$env:ECHOMIND_DEMO='1'
-$env:ECHOMIND_DEMO_LLM='0'
+$env:SAAS_COPILOT_DEMO='1'
+$env:SAAS_COPILOT_DEMO_LLM='0'
 .venv/Scripts/python -m uvicorn api.main:app --host 127.0.0.1 --port 8000
 ```
 
@@ -101,7 +101,7 @@ All users, prices, invoices and API records are synthetic. Login is intentionall
 identity selector, never suitable as production authentication. No real charge/email occurs.
 UI verification has already scheduled Aurora's upgrade and created one pending invitation in the
 current local database. Seed preserves these states. To start pristine, seed another directory
-and set `ECHOMIND_DEMO_DATA` to that directory; no deletion is necessary.
+and set `SAAS_COPILOT_DEMO_DATA` to that directory; no deletion is necessary.
 
 The mock product stores transactional facts in `flowforge.db`; versioned knowledge is in Chroma.
 Historical Chroma snapshots do not automatically mirror subscription changes: tools provide
@@ -113,10 +113,10 @@ current business state. `documents.json` and `seed-report.json` make the seed in
 ```
 
 For model integration, configure `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL` if needed, and an
-available `ANTHROPIC_MODEL`; set `ECHOMIND_DEMO_LLM=1` and restart. The evaluator's explicit
+available `ANTHROPIC_MODEL`; set `SAAS_COPILOT_DEMO_LLM=1` and restart. The evaluator's explicit
 `--engine llm` option uses that provider and may incur charges. No real provider was called in
-this delivery. `ECHOMIND_DEMO_EMBEDDING=minilm` uses a separate semantic collection and may
-download a model; it has not been benchmarked here. Optional `ECHOMIND_DEMO_REDIS_URL` has not
+this delivery. `SAAS_COPILOT_DEMO_EMBEDDING=minilm` uses a separate semantic collection and may
+download a model; it has not been benchmarked here. Optional `SAAS_COPILOT_DEMO_REDIS_URL` has not
 been exercised against a running Redis server in this Windows session.
 
 ## Scope and interview claims

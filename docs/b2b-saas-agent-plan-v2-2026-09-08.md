@@ -1,4 +1,4 @@
-# EchoMind V2：可注册业务工具的 B2B SaaS 服务 Agent
+# SaaS Copilot V2：可注册业务工具的 B2B SaaS 服务 Agent
 
 > 实施进展（2026-09-09）：本文保留调研阶段的完整方案；已按 [实施 Spec](./spec-b2b-saas-v2.md) 完成 MVP，实际范围、测试与后续项见 [实施记录](./implementation-v2.md)。下述“未实现”描述对应原调研时点。
 
@@ -8,7 +8,7 @@
 
 ## 1. 定位与目标
 
-**EchoMind 是面向 B2B SaaS 的可扩展服务 Agent：通过注册业务工具，完成产品功能咨询、API 对接支持、订阅/账单管理、企业账户管理，也保留交付、采用和续费分析。**
+**SaaS Copilot 是面向 B2B SaaS 的可扩展服务 Agent：通过注册业务工具，完成产品功能咨询、API 对接支持、订阅/账单管理、企业账户管理，也保留交付、采用和续费分析。**
 
 主要用户从“只服务 SaaS 内部分析人员”扩展为客户组织中的开发者、企业管理员、账单管理员，以及被明确授权的 SaaS 支持人员。Agent 根据用户任务选能力，系统根据身份决定能查什么、能改什么，两者职责不同。
 
@@ -32,7 +32,7 @@ FlowForge Cloud 是支撑这个 Agent 的虚构数据集成 SaaS。产品拥有�
 
 ```mermaid
 flowchart LR
-    UI[FlowForge 产品界面与 EchoMind 对话] --> API[FastAPI / ChatService]
+    UI[FlowForge 产品界面与 SaaS Copilot 对话] --> API[FastAPI / ChatService]
     API --> ID[服务端会话与组织范围]
     ID --> ORCH[原有意图与 Agent 编排]
     ORCH --> REG[业务工具注册与执行策略]
@@ -191,7 +191,7 @@ BM25/RRF 仍是可选优化，优先错误码、接口路径、SKU 等匹配。�
 
 ## 9. 简历价值与演示故事
 
-建议项目名：**EchoMind｜面向 B2B SaaS 的工具驱动服务 Agent**。FlowForge 是其业务沙箱，用于证明咨询、排障和操作能落到同一套业务状态。
+建议项目名：**SaaS Copilot｜面向 B2B SaaS 的工具驱动服务 Agent**。FlowForge 是其业务沙箱，用于证明咨询、排障和操作能落到同一套业务状态。
 
 完成后可写（当前不能作为已完成事实）：
 

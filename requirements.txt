@@ -1,4 +1,4 @@
-# EchoMind 依赖清单
+# SaaS Copilot 依赖清单
 
 # ── AI / LLM ──────────────────────────────────────────────────────────────────
 anthropic==0.40.0          # Anthropic-compatible model client

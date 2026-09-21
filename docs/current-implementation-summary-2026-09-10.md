@@ -4,7 +4,7 @@
 
 ## 1. 业务定位
 
-EchoMind 为 FlowForge 模拟 API/Webhook 产品提供功能咨询、集成支持、订阅账单和企业账户管理。
+SaaS Copilot 为 FlowForge 模拟 API/Webhook 产品提供功能咨询、集成支持、订阅账单和企业账户管理。
 三个演示组织、四类成员角色，实际修改本地业务状态；无真实扣款、邮件或外部 Webhook 执行。
 
 ## 2. 意图识别
@@ -66,7 +66,7 @@ Triage 对应 product，Support 对应 integration，Success 对应 billing/acco
 ## 9. 运行入口
 
 `api.main:app` 始终提供当前工作台，前端仅渲染企业服务页面。
-`ECHOMIND_DEMO_LLM=0` 为确定性演示，设为 1 并配置模型后运行 Agent 编排。
+`SAAS_COPILOT_DEMO_LLM=0` 为确定性演示，设为 1 并配置模型后运行 Agent 编排。
 默认本地数据位于 `data/flowforge`，不再启动或访问旧分析数据库。
 
 详见 [启动指南](../README.md)、[产品说明](flowforge-product-introduction.md)、[清理记录](standalone-cleanup.md)。

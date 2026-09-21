@@ -1,7 +1,7 @@
 <template>
   <main class="demo-shell">
     <header class="demo-header">
-      <div><small>FLOWFORGE CLOUD × ECHOMIND</small><h1>企业服务工作台</h1><p>产品咨询 · API 支持 · 订阅账单 · 企业账户</p></div>
+      <div><small>FLOWFORGE CLOUD × SaaS Copilot</small><h1>企业服务工作台</h1><p>产品咨询 · API 支持 · 订阅账单 · 企业账户</p></div>
       <span class="demo-badge">{{ engine === 'llm' ? '模型模式' : '离线演示 · 非模型生成' }} · 合成数据</span>
     </header>
     <section class="demo-login">
@@ -66,9 +66,9 @@
         </article>
       </section>
       <section class="demo-chat demo-card">
-        <h2>EchoMind</h2><p class="demo-muted">{{ engine === 'llm' ? '使用业务工具处理请求；操作结果以回执为准。' : '确定性演示覆盖核心流程；启用模型后使用相同业务工具。' }}</p>
+        <h2>SaaS Copilot</h2><p class="demo-muted">{{ engine === 'llm' ? '使用业务工具处理请求；操作结果以回执为准。' : '确定性演示覆盖核心流程；启用模型后使用相同业务工具。' }}</p>
         <div class="demo-examples"><button v-for="q in examples" :key="q" @click="draft = q">{{ q }}</button></div>
-        <div class="demo-messages" aria-live="polite"><article v-for="(item, index) in messages" :key="index" :class="item.role"><strong>{{ item.role === 'user' ? '你' : 'EchoMind' }}</strong><p>{{ item.content }}</p>
+        <div class="demo-messages" aria-live="polite"><article v-for="(item, index) in messages" :key="index" :class="item.role"><strong>{{ item.role === 'user' ? '你' : 'SaaS Copilot' }}</strong><p>{{ item.content }}</p>
           <small v-if="item.meta">{{ item.meta }}</small>
           <details v-if="item.citations?.length"><summary>查看依据（{{ item.citations.length }}）</summary><div v-for="c in item.citations" :key="c.source_id"><strong>{{ c.title || c.source_id }}</strong><small>{{ c.source_id }} · {{ c.version || '实时工具' }}</small><pre>{{ typeof c.content === 'string' ? c.content : JSON.stringify(c.content, null, 2) }}</pre></div></details>
         </article></div>

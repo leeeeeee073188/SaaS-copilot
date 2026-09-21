@@ -15,8 +15,8 @@
 ## 保留与兼容
 
 三个业务 Agent 的工具循环、授权、结构化汇总、记忆、检索、监控及业务状态测评保留。
-`api.main:app` 启动路径不变，始终创建当前工作台。`ECHOMIND_DEMO_LLM` 仍选择离线或模型执行，
-其他 `ECHOMIND_DEMO_*` 配置名称保留，`ECHOMIND_DEMO` 不再选择旧模式。
+`api.main:app` 启动路径不变，始终创建当前工作台。`SAAS_COPILOT_DEMO_LLM` 仍选择离线或模型执行，
+其他 `SAAS_COPILOT_DEMO_*` 配置名称保留，`SAAS_COPILOT_DEMO` 不再选择旧模式。
 演示身份和模拟产品仍非生产认证、真实支付或邮件实现。
 
 早期研究、ADR 和验收记录作为历史保留；当前功能以 README、当前实现说明与代码为准。

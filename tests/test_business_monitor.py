@@ -16,7 +16,7 @@ from saas.service import Actor
 
 class BusinessMonitorTest(unittest.TestCase):
     def make_app(self):
-        with patch.dict("os.environ", {"ECHOMIND_DEMO_LLM": "0", "ECHOMIND_DEMO_REDIS_URL": ""}):
+        with patch.dict("os.environ", {"SAAS_COPILOT_DEMO_LLM": "0", "SAAS_COPILOT_DEMO_REDIS_URL": ""}):
             return create_demo_app(tempfile.mkdtemp(prefix="ff-observability-"))
 
     @staticmethod
@@ -44,7 +44,7 @@ class BusinessMonitorTest(unittest.TestCase):
             actor = Actor("aurora_owner", "org_aurora", "owner")
             self.assertEqual(reopened.recent(actor, request_id=request_id)[0]["request_id"], request_id)
             self.assertEqual(client.get("/monitor").status_code, 401)
-            with patch.dict("os.environ", {"ECHOMIND_METRICS_TOKEN": "test-operator-token"}):
+            with patch.dict("os.environ", {"SAAS_COPILOT_METRICS_TOKEN": "test-operator-token"}):
                 self.assertEqual(client.get("/metrics", headers=owner).status_code, 403)
                 metrics = client.get("/metrics", headers={"Authorization": "Bearer test-operator-token"}).text
                 self.assertIn("flowforge_chat_duration_seconds_count", metrics)

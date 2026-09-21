@@ -1,4 +1,4 @@
-# 0002: Expand EchoMind to Tool-Enabled B2B SaaS Service
+# 0002: Expand SaaS Copilot to Tool-Enabled B2B SaaS Service
 
 ## Status
 
@@ -13,7 +13,7 @@ domains remain; there is no alternate internal-analysis runtime. See [cleanup re
 
 ## Decision
 
-EchoMind will support product consultation, API integration support,
+SaaS Copilot will support product consultation, API integration support,
 subscription and billing management, and organization account management
 through registered business tools. Customer organization members are primary
 users; SaaS support staff act only within an explicitly assigned organization
@@ -27,7 +27,7 @@ are not authoritative records of current business state.
 
 The first implementation will extend the existing FastAPI application with a
 small business module and a separate SQLite database. Product UI actions and
-Agent tools will call the same domain services. EchoMind retains its current
+Agent tools will call the same domain services. SaaS Copilot retains its current
 orchestrator and tool-use implementation; capability registration extends the
 existing tool specifications instead of introducing a second Agent framework.
 

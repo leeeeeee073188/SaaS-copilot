@@ -1,6 +1,6 @@
 # V2 监控与可观测性
 
-更新：2026-09-10。适用于 `ECHOMIND_DEMO=1` 的客户企业用户支持模式，离线和模型执行共用监控链路。
+更新：2026-09-10。适用于 `SAAS_COPILOT_DEMO=1` 的客户企业用户支持模式，离线和模型执行共用监控链路。
 
 ## 1. 能回答什么问题
 
@@ -112,7 +112,7 @@ Token 来自 Agent 和 Composer 响应的 usage。提供商未返回某个字段
 
 ### 启用采集
 
-在本地 `.env` 中为 `ECHOMIND_METRICS_TOKEN` 设置独立值，重启后通过 `Authorization: Bearer <该值>` 抓取 `/metrics`。未配置时该入口返回 403，不把凭证放入前端。
+在本地 `.env` 中为 `SAAS_COPILOT_METRICS_TOKEN` 设置独立值，重启后通过 `Authorization: Bearer <该值>` 抓取 `/metrics`。未配置时该入口返回 403，不把凭证放入前端。
 
 同机 Prometheus 配置示例（独立部署的 Prometheus 需使用实际可达地址）：
 

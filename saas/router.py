@@ -87,7 +87,7 @@ def build_router(service):
 
     @router.post("/demo/advance-clock")
     def advance(body: Clock, x_demo_control: str = Header(default="")):
-        expected = os.getenv("ECHOMIND_DEMO_CONTROL_KEY", "")
+        expected = os.getenv("SAAS_COPILOT_DEMO_CONTROL_KEY", "")
         if not expected or not secrets.compare_digest(expected, x_demo_control):
             raise HTTPException(403, "Demo control credential required")
         return invoke(service.advance_clock, body.timestamp)

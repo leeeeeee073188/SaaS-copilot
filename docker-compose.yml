@@ -12,12 +12,12 @@ services:
       timeout: 3s
       retries: 5
     restart: unless-stopped
-  echomind:
+  saas-copilot:
     build: .
     env_file: .env
     environment:
-      ECHOMIND_DEMO_DATA: /app/data/flowforge
-      ECHOMIND_DEMO_REDIS_URL: redis://redis:6379/0
+      SAAS_COPILOT_DEMO_DATA: /app/data/flowforge
+      SAAS_COPILOT_DEMO_REDIS_URL: redis://redis:6379/0
     depends_on:
       redis:
         condition: service_healthy
@@ -37,7 +37,7 @@ services:
     ports:
       - "127.0.0.1:5174:80"
     depends_on:
-      echomind:
+      saas-copilot:
         condition: service_healthy
     restart: unless-stopped
 volumes:

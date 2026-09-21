@@ -35,4 +35,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--database", default="data/flowforge/flowforge.db")
     args = parser.parse_args()
-    print(json.dumps(asyncio.run(migrate(args.database, os.getenv("ECHOMIND_DEMO_REDIS_URL") or "redis://127.0.0.1:6380/0"))))
+    print(json.dumps(asyncio.run(migrate(args.database, os.getenv("SAAS_COPILOT_DEMO_REDIS_URL") or "redis://127.0.0.1:6380/0"))))
